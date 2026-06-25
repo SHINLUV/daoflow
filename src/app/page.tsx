@@ -75,6 +75,53 @@ export default function HomePage() {
 
       {/* Screen 2: 主题地图 */}
       <ThemeMap />
+
+      {/* Screen 3: 关于 — 极简底部 */}
+      <section
+        id="about"
+        className="relative min-h-screen flex flex-col items-center justify-center px-6 py-24"
+      >
+        <CloudBackground />
+        <div className="relative z-10 max-w-lg mx-auto text-center">
+          {/* 标题 */}
+          <h2 className="text-xl tracking-wider-title text-ink/75 mb-16">关于</h2>
+
+          {/* 三段 */}
+          <div className="flex flex-col gap-12">
+            <div>
+              <h3 className="text-sm tracking-wider text-shadow-gray/50 mb-3">老子是谁</h3>
+              <p className="text-sm text-ink/60 leading-relaxed tracking-wider">
+                春秋时期的哲学家，《道德经》的作者。
+                他的思想影响了中国两千多年，
+                是全球翻译量仅次于《圣经》的经典。
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-sm tracking-wider text-shadow-gray/50 mb-3">问道是什么</h3>
+              <p className="text-sm text-ink/60 leading-relaxed tracking-wider">
+                一个安静的地方。
+                用《道德经》的古老智慧回应你此刻的困惑。
+                不是国学课，不是资料库，是你与道的对话。
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-sm tracking-wider text-shadow-gray/50 mb-3">为什么做</h3>
+              <p className="text-sm text-ink/60 leading-relaxed tracking-wider">
+                在算法与信息洪流的时代，
+                需要一个「慢」的空间。
+                不是看见道，是看见自己站在道之中。
+              </p>
+            </div>
+          </div>
+
+          {/* 底部留白 */}
+          <p className="mt-20 text-[11px] text-shadow-gray/30 tracking-widest">
+            DaoFlow · 问道
+          </p>
+        </div>
+      </section>
     </>
   )
 }
