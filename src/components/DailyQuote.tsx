@@ -1,7 +1,9 @@
 'use client'
 
+import { useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
+import { Copy, Check } from '@phosphor-icons/react'
 
 interface QuoteData {
   date: string
@@ -24,6 +26,19 @@ interface QuoteData {
  */
 export default function DailyQuote() {
   const [quote, setQuote] = useState<QuoteData | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = useCallback(async () => {
+    if (!quote) return
+    const text = `「${quote.quote}」\n—— ${quote.attribution}`
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // 降级：fallback 无操作
+    }
+  }, [quote])
 
   useEffect(() => {
     // 客户端 fetch /api/daily-quote
@@ -64,6 +79,33 @@ export default function DailyQuote() {
       <span className="text-[13px] text-shadow-gray/50 tracking-wider">
         —— {quote.attribution}
       </span>
+
+      {/* 复制分享 — 对标 Daily Stoic Quotes 的 quote maker */}
+      <button
+        type="button"
+        onClick={handleCopy}
+        className="
+          flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full
+          text-[12px] tracking-wider
+          text-shadow-gray/40 hover:text-ink/60
+          border border-transparent hover:border-ridge-blue/10
+          transition-all duration-300
+          cursor-pointer
+        "
+        aria-label="复制今日一句"
+      >
+        {copied ? (
+          <>
+            <Check size={14} weight="bold" />
+            已复制
+          </>
+        ) : (
+          <>
+            <Copy size={14} />
+            复制
+          </>
+        )}
+      </button>
     </motion.div>
   )
 }
