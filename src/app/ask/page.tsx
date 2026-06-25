@@ -1,14 +1,17 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import { Copy, Check } from '@phosphor-icons/react'
 import NavBar from '@/components/NavBar'
 import CloudBackground from '@/components/CloudBackground'
+import DaoLoading from '@/components/DaoLoading'
 
 interface AskResult {
   matchedChapter: number
+  originalText: string | null
   interpretation: string
   followUpQuestion: string | null
   sessionId: string | null
@@ -30,6 +33,28 @@ function AskContent() {
   const [result, setResult] = useState<AskResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = useCallback(async () => {
+    if (!result) return
+    const parts = [
+      `问：${question}`,
+      '',
+      `《道德经·第${result.matchedChapter}章》`,
+      result.originalText || '',
+      '',
+      result.interpretation,
+    ]
+    if (result.followUpQuestion) {
+      parts.push('', result.followUpQuestion)
+    }
+    const text = parts.join('\n')
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {}
+  }, [result, question])
 
   useEffect(() => {
     if (!question) {
@@ -76,11 +101,7 @@ function AskContent() {
           {question}
         </p>
 
-        {loading && (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-2 border-mist-gray border-t-ink rounded-full animate-spin" />
-          </div>
-        )}
+        {loading && <DaoLoading />}
 
         {error && (
           <p className="text-ink/60 py-12 text-center">加载失败：{error}</p>
@@ -104,8 +125,15 @@ function AskContent() {
               第{result.matchedChapter}章
             </span>
 
+            {/* 原文 — 主角 */}
+            {result.originalText && (
+              <blockquote className="mt-6 text-[17px] text-ink/75 leading-[2.2] tracking-wider font-serif border-l-2 border-dawn-gold/30 pl-5 italic">
+                {result.originalText}
+              </blockquote>
+            )}
+
             {/* AI 解读 */}
-            <p className="mt-4 text-[18px] text-ink leading-[2.2] tracking-wider">
+            <p className="mt-6 text-[16px] text-ink/70 leading-[2.2] tracking-wider">
               {result.interpretation}
             </p>
 
@@ -120,19 +148,30 @@ function AskContent() {
             <div className="mt-12 mb-8 h-px bg-mist-gray/30" />
 
             {/* 操作入口 */}
-            <div className="flex gap-6">
+            <div className="flex items-center gap-6">
               <Link
                 href={`/chapters/${result.matchedChapter}`}
-                className="text-[14px] text-ridge-blue hover:text-ink transition-colors duration-300"
+                className="text-[14px] text-ridge-blue hover:text-ink transition-colors duration-300 tracking-wider"
               >
                 查看原文
               </Link>
               <Link
                 href="/"
-                className="text-[14px] text-ridge-blue hover:text-ink transition-colors duration-300"
+                className="text-[14px] text-ridge-blue hover:text-ink transition-colors duration-300 tracking-wider"
               >
                 继续问道
               </Link>
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="flex items-center gap-1.5 text-[13px] text-shadow-gray/50 hover:text-ink/60 transition-colors tracking-wider"
+              >
+                {copied ? (
+                  <><Check size={14} weight="bold" />已复制</>
+                ) : (
+                  <><Copy size={14} />复制</>
+                )}
+              </button>
             </div>
 
             {/* 提供者信息（调试用） */}
@@ -150,7 +189,7 @@ export default function AskPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-cloud-white flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-mist-gray border-t-ink rounded-full animate-spin" />
+        <DaoLoading />
       </div>
     }>
       <AskContent />

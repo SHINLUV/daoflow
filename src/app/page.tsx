@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import NavBar from '@/components/NavBar'
@@ -65,7 +66,9 @@ export default function HomePage() {
 
           {/* 输入框 */}
           <div className="mb-10">
-            <AskInput onSubmit={handleAsk} />
+            <Suspense fallback={null}>
+              <AskInput onSubmit={handleAsk} />
+            </Suspense>
           </div>
         </div>
 
@@ -116,10 +119,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* 底部留白 */}
-          <p className="mt-20 text-[11px] text-shadow-gray/30 tracking-widest">
-            DaoFlow · 问道
-          </p>
         </div>
       </section>
     </>

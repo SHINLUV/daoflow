@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ArrowRight } from '@phosphor-icons/react'
 
@@ -32,11 +33,15 @@ const DEFAULT_SUGGESTIONS = [
  *   降级：API 失败时使用默认建议词
  */
 export default function AskInput({ onSubmit, disabled = false, suggestions }: AskInputProps) {
+  const searchParams = useSearchParams()
+  const prefilledQuestion = searchParams.get('q') || ''
+
   const [dynamicSuggestions, setDynamicSuggestions] = useState(suggestions || DEFAULT_SUGGESTIONS)
+  const [value, setValue] = useState(prefilledQuestion)
 
   // 自动获取每日建议词（仅当外部未传入时）
   useEffect(() => {
-    if (suggestions) return // 外部已传入，不需要获取
+    if (suggestions) return
     fetch('/api/daily-quote')
       .then(r => r.json())
       .then(data => {
@@ -44,11 +49,19 @@ export default function AskInput({ onSubmit, disabled = false, suggestions }: As
           setDynamicSuggestions(data.suggestions)
         }
       })
-      .catch(() => {}) // 静默降级，保持默认建议词
+      .catch(() => {})
   }, [suggestions])
-  const [value, setValue] = useState('')
-  const [focused, setFocused] = useState(false)
+
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // URL 参数预填时自动聚焦
+  useEffect(() => {
+    if (prefilledQuestion) {
+      inputRef.current?.focus()
+    }
+  }, [prefilledQuestion])
+
+  const [focused, setFocused] = useState(false)
 
   const handleSubmit = () => {
     const trimmed = value.trim()

@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 import {
   Heart, Handshake, Compass, Briefcase, Sparkle, YinYang
 } from '@phosphor-icons/react'
@@ -13,6 +14,9 @@ import {
  *   不使用卡片背景色块、投影、圆形图标背景
  *   线性图标可选，单色不填充
  *   每项留白 ≥32px
+ *
+ * 点击行为:
+ *   跳回首页并预填一个与主题相关的问题
  */
 
 const THEME_ICONS: Record<string, React.ElementType> = {
@@ -25,15 +29,21 @@ const THEME_ICONS: Record<string, React.ElementType> = {
 }
 
 const THEMES = [
-  { name: '焦虑与情绪', subtitle: '如何面对内心的不安' },
-  { name: '关系与边界', subtitle: '如何建立健康的关系' },
-  { name: '选择与决策', subtitle: '如何做出明智的选择' },
-  { name: '事业与创业', subtitle: '如何在工作中找到方向' },
-  { name: '成长与自我', subtitle: '如何成为更好的自己' },
-  { name: '无为与有为', subtitle: '如何平衡行动与等待' },
+  { name: '焦虑与情绪', subtitle: '如何面对内心的不安', question: '最近总是很焦虑，停不下来' },
+  { name: '关系与边界', subtitle: '如何建立健康的关系', question: '和某人的关系让我很困扰' },
+  { name: '选择与决策', subtitle: '如何做出明智的选择', question: '面临一个重要的选择，不知道怎么办' },
+  { name: '事业与创业', subtitle: '如何在工作中找到方向', question: '工作中找不到方向和意义' },
+  { name: '成长与自我', subtitle: '如何成为更好的自己', question: '感觉自己停滞不前，想成长' },
+  { name: '无为与有为', subtitle: '如何平衡行动与等待', question: '不知道该努力还是该顺其自然' },
 ]
 
 export default function ThemeMap() {
+  const router = useRouter()
+
+  const handleThemeClick = (question: string) => {
+    router.push(`/?q=${encodeURIComponent(question)}`)
+  }
+
   return (
     <section id="themes" className="relative min-h-screen px-8 py-section-gap">
       {/* 云雾过渡层 */}
@@ -60,10 +70,10 @@ export default function ThemeMap() {
           {THEMES.map((theme, index) => {
             const Icon = THEME_ICONS[theme.name]
             return (
-              <motion.a
+              <motion.button
                 key={theme.name}
-                href={`/theme/${encodeURIComponent(theme.name)}`}
-                className="group flex items-start gap-4 py-10 border-t border-mist-gray/30 hover:border-mist-gray/60 transition-colors duration-500"
+                onClick={() => handleThemeClick(theme.question)}
+                className="group flex items-start gap-4 py-10 border-t border-mist-gray/30 hover:border-mist-gray/60 transition-colors duration-500 text-left w-full cursor-pointer"
                 initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-50px' }}
@@ -85,7 +95,7 @@ export default function ThemeMap() {
                     {theme.subtitle}
                   </span>
                 </div>
-              </motion.a>
+              </motion.button>
             )
           })}
         </div>

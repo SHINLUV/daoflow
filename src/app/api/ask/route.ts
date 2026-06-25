@@ -85,9 +85,28 @@ export async function POST(request: NextRequest) {
     console.error('[api/ask] 会话写入异常:', dbError)
   }
 
-  // 4. 返回统一结构
+  // 4. 获取匹配章节的原文（原文是主角）
+  let originalText: string | null = null
+
+  if (result.matchedChapter) {
+    try {
+      const { createClient } = await import('@/lib/supabase/server')
+      const supabase = createClient()
+      const { data: ch } = await supabase
+        .from('chapters')
+        .select('original_text')
+        .eq('id', result.matchedChapter)
+        .single()
+      if (ch) originalText = ch.original_text
+    } catch {
+      // 降级：无原文不影响核心体验
+    }
+  }
+
+  // 5. 返回统一结构
   return NextResponse.json({
     matchedChapter: result.matchedChapter,
+    originalText,
     interpretation: result.interpretation,
     followUpQuestion: result.followUpQuestion,
     sessionId,
