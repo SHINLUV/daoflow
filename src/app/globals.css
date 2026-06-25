@@ -2,22 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== DaoFlow 全局样式 ===== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #F6F4F1;   /* 云白·宣纸暖感 */
+  --foreground: #23262A;   /* 墨色 */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* DaoFlow 不需要 dark mode —— 始终维持黎明灰蓝调 */
+/* 故意不配置 prefers-color-scheme: dark 的变量 */
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-serif), serif;
+  font-weight: 350;        /* Light 字重（Google Fonts 用 300 近似） */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 发丝线工具类 */
+.hairline {
+  border-width: 1px;
+  border-color: rgba(201, 205, 200, 0.4);  /* #C9CDC8 40%透明度 */
+}
+
+/* 正文样式 */
+.prose-body {
+  line-height: 2.2;
+}
+
+/* 高斯模糊光晕（替代硬投影） */
+.glow-soft {
+  filter: blur(24px);
+  opacity: 0.12;
 }
 
 @layer utilities {
@@ -25,3 +43,6 @@ body {
     text-wrap: balance;
   }
 }
+
+/* 思源宋体通过 next/font/google 加载（Noto Serif SC） */
+/* 字体变量 --font-serif 由 layout.tsx 注入 */

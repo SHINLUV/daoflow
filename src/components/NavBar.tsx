@@ -12,7 +12,7 @@ import Link from 'next/link'
  */
 const NAV_ITEMS = [
   { label: '问道', href: '/' },
-  { label: '我的道', href: '#my-dao' },
+  { label: '我的道', href: '/my-dao' },
   { label: '关于', href: '#about' },
 ]
 
