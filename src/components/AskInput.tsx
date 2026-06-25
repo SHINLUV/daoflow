@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRight } from '@phosphor-icons/react'
 
@@ -25,8 +25,27 @@ const DEFAULT_SUGGESTIONS = [
  *   聚焦态边框变晨光金 #D4B896
  *   右侧圆形墨色提交按钮
  *   淡入动效 600ms，加载后 0.8 秒触发
+ *
+ * 建议词:
+ *   若外部传入 suggestions 则使用
+ *   否则自动从 /api/daily-quote 获取今日建议词
+ *   降级：API 失败时使用默认建议词
  */
-export default function AskInput({ onSubmit, disabled = false, suggestions = DEFAULT_SUGGESTIONS }: AskInputProps) {
+export default function AskInput({ onSubmit, disabled = false, suggestions }: AskInputProps) {
+  const [dynamicSuggestions, setDynamicSuggestions] = useState(suggestions || DEFAULT_SUGGESTIONS)
+
+  // 自动获取每日建议词（仅当外部未传入时）
+  useEffect(() => {
+    if (suggestions) return // 外部已传入，不需要获取
+    fetch('/api/daily-quote')
+      .then(r => r.json())
+      .then(data => {
+        if (data.suggestions?.length) {
+          setDynamicSuggestions(data.suggestions)
+        }
+      })
+      .catch(() => {}) // 静默降级，保持默认建议词
+  }, [suggestions])
   const [value, setValue] = useState('')
   const [focused, setFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -47,7 +66,7 @@ export default function AskInput({ onSubmit, disabled = false, suggestions = DEF
     >
       {/* 轻量引导词 — 降低空白页恐惧（Reflectly 启发） */}
       <div className="flex items-center justify-center gap-2 mb-3 flex-wrap">
-        {suggestions.map((suggestion) => (
+        {dynamicSuggestions.map((suggestion) => (
           <button
             key={suggestion}
             type="button"
