@@ -22,7 +22,7 @@ export default function NavBar() {
       {/* Logo */}
       <Link
         href="/"
-        className="text-sm tracking-wider-title text-ink/70 hover:text-ink/90 transition-colors duration-300"
+        className="title-sans text-sm tracking-[0.05em] text-ink/70 hover:text-ink/90 transition-colors duration-300"
       >
         DaoFlow
       </Link>
@@ -33,7 +33,7 @@ export default function NavBar() {
           <li key={item.label}>
             <Link
               href={item.href}
-              className="group relative text-sm tracking-wider text-ink/70 hover:text-ink/90 transition-colors duration-300"
+              className="title-sans group relative text-sm tracking-[0.05em] text-ink/70 hover:text-ink/90 transition-colors duration-300"
             >
               {item.label}
               <span className="absolute bottom-[-2px] left-0 w-0 h-px bg-ink/50 transition-all duration-300 group-hover:w-full" />

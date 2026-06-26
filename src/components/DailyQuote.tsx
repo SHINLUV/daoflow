@@ -70,8 +70,8 @@ export default function DailyQuote() {
         今日一句
       </span>
 
-      {/* 引用：核心钩子 — 用户打开即获得的价值 */}
-      <p className="text-lg sm:text-xl md:text-2xl text-ink/85 leading-relaxed text-center max-w-[480px] px-4 tracking-wider">
+      {/* 引用：核心钩子 — 无衬线体 18px（参考图规范） */}
+      <p className="title-sans text-lg text-ink/85 leading-relaxed text-center max-w-[480px] px-4 tracking-[0.05em] font-medium">
         {quote.quote}
       </p>
 

@@ -91,13 +91,13 @@ function AskContent() {
         {/* 返回链接 */}
         <Link
           href="/"
-          className="inline-block text-[13px] text-shadow-gray hover:text-ink transition-colors duration-300 mb-12"
+          className="title-sans inline-block text-xs text-shadow-gray hover:text-ink transition-colors duration-300 mb-12 tracking-[0.05em]"
         >
           ← 返回问道
         </Link>
 
         {/* 用户问题回显 */}
-        <p className="text-[15px] text-shadow-gray mb-8">
+        <p className="title-sans text-sm text-shadow-gray mb-8 font-medium">
           {question}
         </p>
 
@@ -120,26 +120,26 @@ function AskContent() {
               </div>
             )}
 
-            {/* 章节号 */}
-            <span className="text-[12px] tracking-widest text-dawn-gold uppercase">
+            {/* 章节号 — 无衬线体 */}
+            <span className="title-sans text-lg tracking-[0.1em] text-ink/85 font-medium">
               第{result.matchedChapter}章
             </span>
 
-            {/* 原文 — 主角 */}
+            {/* 原文 — 衬线体 18px */}
             {result.originalText && (
-              <blockquote className="mt-6 text-[17px] text-ink/75 leading-[2.2] tracking-wider font-serif border-l-2 border-dawn-gold/30 pl-5 italic">
+              <blockquote className="mt-6 text-lg text-ink/75 leading-[2.2] tracking-wider border-l-2 border-dawn-gold/30 pl-5 italic">
                 {result.originalText}
               </blockquote>
             )}
 
-            {/* AI 解读 */}
-            <p className="mt-6 text-[16px] text-ink/70 leading-[2.2] tracking-wider">
+            {/* AI 解读 — 正文 14px */}
+            <p className="mt-6 text-sm text-ink/70 leading-[2.2] tracking-wider">
               {result.interpretation}
             </p>
 
             {/* 反问句 */}
             {result.followUpQuestion && (
-              <p className="mt-8 text-[16px] text-shadow-gray italic leading-relaxed">
+              <p className="mt-8 text-sm text-shadow-gray italic leading-relaxed">
                 {result.followUpQuestion}
               </p>
             )}
@@ -151,20 +151,20 @@ function AskContent() {
             <div className="flex items-center gap-6">
               <Link
                 href={`/chapters/${result.matchedChapter}`}
-                className="text-[14px] text-ridge-blue hover:text-ink transition-colors duration-300 tracking-wider"
+                className="title-sans text-sm text-ridge-blue hover:text-ink transition-colors duration-300 tracking-[0.05em]"
               >
                 查看原文
               </Link>
               <Link
                 href="/"
-                className="text-[14px] text-ridge-blue hover:text-ink transition-colors duration-300 tracking-wider"
+                className="title-sans text-sm text-ridge-blue hover:text-ink transition-colors duration-300 tracking-[0.05em]"
               >
                 继续问道
               </Link>
               <button
                 type="button"
                 onClick={handleCopy}
-                className="flex items-center gap-1.5 text-[13px] text-shadow-gray/50 hover:text-ink/60 transition-colors tracking-wider"
+                className="title-sans flex items-center gap-1.5 text-xs text-shadow-gray/50 hover:text-ink/60 transition-colors tracking-[0.05em]"
               >
                 {copied ? (
                   <><Check size={14} weight="bold" />已复制</>

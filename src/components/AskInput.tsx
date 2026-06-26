@@ -126,7 +126,7 @@ export default function AskInput({ onSubmit, disabled = false, suggestions }: As
           onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
           placeholder="写下你的困惑，问道智慧"
           disabled={disabled}
-          className="flex-1 bg-transparent text-ink placeholder:text-shadow-gray/60 text-base outline-none"
+          className="flex-1 bg-transparent text-ink placeholder:text-shadow-gray/60 text-sm outline-none"
           maxLength={500}
         />
 

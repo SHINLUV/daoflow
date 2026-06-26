@@ -79,24 +79,24 @@ export default function ChapterPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            {/* 章节标题 */}
-            <span className="text-[12px] tracking-widest text-dawn-gold uppercase">
+            {/* 章节标题 — 无衬线体 18px（参考图规范） */}
+            <span className="title-sans text-lg tracking-[0.1em] text-ink/85 font-medium">
               第{chapter.id}章
             </span>
 
-            {/* 原文 */}
-            <blockquote className="mt-8 text-[20px] sm:text-[22px] text-ink/85 leading-[2.2] tracking-wider font-serif">
+            {/* 原文 — 衬线体 18px（参考图规范 H2） */}
+            <blockquote className="mt-8 text-lg text-ink/85 leading-[2.2] tracking-wider">
               {chapter.originalText}
             </blockquote>
 
             {/* 分隔 */}
             <div className="mt-10 mb-8 h-px bg-mist-gray/25" />
 
-            {/* 白话译文 */}
-            <h3 className="text-[12px] tracking-wider text-shadow-gray/50 mb-4 uppercase">
+            {/* 白话译文 — 无衬线标签 */}
+            <h3 className="title-sans text-xs tracking-[0.1em] text-shadow-gray/50 mb-4 font-medium">
               白话译文
             </h3>
-            <p className="text-[16px] text-ink/70 leading-[2] tracking-wider">
+            <p className="text-sm text-ink/70 leading-[2] tracking-wider">
               {chapter.vernacularText}
             </p>
 

@@ -16,9 +16,15 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-serif), serif;
-  font-weight: 350;        /* Light 字重（Google Fonts 用 300 近似） */
+  font-weight: 400;        /* Regular 字重 */
+  font-size: 14px;         /* 正文基准 14px（参考图规范） */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* 标题无衬线字体（参考图：标题用黑体，正文用宋体） */
+.title-sans {
+  font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif;
 }
 
 /* 发丝线工具类 */

@@ -49,17 +49,17 @@ export default function HomePage() {
             <DailyQuote />
           </div>
 
-          {/* 中央文案：超级力量 — 邀请而非命令 */}
+          {/* 中央文案：标题无衬线体，24px（参考图规范） */}
           <motion.div
             className="mb-10 text-center"
             initial={{ opacity: 0, y: 2 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5 }}
           >
-            <p className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-[1.4] tracking-wider-title text-ink/80">
+            <p className="title-sans text-xl sm:text-2xl leading-[1.5] tracking-[0.1em] text-ink/85 font-medium">
               此刻，
             </p>
-            <p className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-[1.4] tracking-wider-title text-ink/80">
+            <p className="title-sans text-xl sm:text-2xl leading-[1.5] tracking-[0.1em] text-ink/85 font-medium">
               你遇到了什么？
             </p>
           </motion.div>
@@ -87,13 +87,13 @@ export default function HomePage() {
         <CloudBackground />
         <div className="relative z-10 max-w-lg mx-auto text-center">
           {/* 标题 */}
-          <h2 className="text-xl tracking-wider-title text-ink/75 mb-16">关于</h2>
+          <h2 className="title-sans text-lg tracking-[0.1em] text-ink/75 mb-16 font-medium">关于</h2>
 
           {/* 三段 */}
           <div className="flex flex-col gap-12">
             <div>
-              <h3 className="text-sm tracking-wider text-shadow-gray/50 mb-3">老子是谁</h3>
-              <p className="text-sm text-ink/60 leading-relaxed tracking-wider">
+              <h3 className="title-sans text-sm tracking-[0.05em] text-shadow-gray/50 mb-3 font-medium">老子是谁</h3>
+              <p className="text-[13px] text-ink/60 leading-relaxed tracking-wider">
                 春秋时期的哲学家，《道德经》的作者。
                 他的思想影响了中国两千多年，
                 是全球翻译量仅次于《圣经》的经典。
@@ -101,8 +101,8 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h3 className="text-sm tracking-wider text-shadow-gray/50 mb-3">问道是什么</h3>
-              <p className="text-sm text-ink/60 leading-relaxed tracking-wider">
+              <h3 className="title-sans text-sm tracking-[0.05em] text-shadow-gray/50 mb-3 font-medium">问道是什么</h3>
+              <p className="text-[13px] text-ink/60 leading-relaxed tracking-wider">
                 一个安静的地方。
                 用《道德经》的古老智慧回应你此刻的困惑。
                 不是国学课，不是资料库，是你与道的对话。
@@ -110,8 +110,8 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h3 className="text-sm tracking-wider text-shadow-gray/50 mb-3">为什么做</h3>
-              <p className="text-sm text-ink/60 leading-relaxed tracking-wider">
+              <h3 className="title-sans text-sm tracking-[0.05em] text-shadow-gray/50 mb-3 font-medium">为什么做</h3>
+              <p className="text-[13px] text-ink/60 leading-relaxed tracking-wider">
                 在算法与信息洪流的时代，
                 需要一个「慢」的空间。
                 不是看见道，是看见自己站在道之中。

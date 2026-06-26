@@ -57,10 +57,10 @@ export default function ThemeMap() {
       <div className="relative z-10 max-w-[960px] mx-auto pt-20">
         {/* 区块标题 */}
         <div className="mb-16">
-          <h2 className="text-[20px] tracking-wider-title text-ink mb-2">
+          <h2 className="title-sans text-lg tracking-[0.1em] text-ink mb-2 font-medium">
             主题
           </h2>
-          <p className="text-[14px] text-shadow-gray">
+          <p className="text-[13px] text-shadow-gray">
             从人生议题出发，找到你的答案
           </p>
         </div>
