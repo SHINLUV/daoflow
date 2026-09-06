@@ -1,14 +1,4 @@
-/**
- * 全局页脚
- *
- * 极简：一行文字，不加任何装饰
- */
+import Link from 'next/link'
 export default function Footer() {
-  return (
-    <footer className="relative z-10 w-full py-8 text-center border-t border-mist-gray/15">
-      <p className="text-[11px] text-shadow-gray/30 tracking-widest">
-        DaoFlow · 问道
-      </p>
-    </footer>
-  )
+  return <footer className="dao-footer"><div className="dao-container"><Link href="/" className="dao-footer-brand">DaoFlow<span>问道</span></Link><p>道法自然，生活亦然。</p><Link href="/#about">关于 DaoFlow</Link></div></footer>
 }

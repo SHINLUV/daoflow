@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DaoFlow · 问道
 
-## Getting Started
+以生活困惑为入口，连接《道德经》原文、简短解读和自我反思的响应式网站。
 
-First, run the development server:
+## 产品与设计资料
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+完整资料见 [docs 目录](docs/README.md)，包含产品全景、功能与实现边界、设计理念、页面截图、返工思考，以及 PDF 和独立 HTML 阅读版。
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 当前功能
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- 困惑输入、主题预览、篇章匹配与解读
+- 81 章原文和白话译文阅读
+- 每日一句与复制
+- 邮箱链接登录及最近 5 条问道记录
+- 电脑、手机适配与错误重试
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+当前问道是单次请求；AI 真实效果与登录后同步的验证边界详见产品资料。
 
-## Learn More
+## 本地运行
 
-To learn more about Next.js, take a look at the following resources:
+使用 Node.js 与 npm，先执行 `npm ci`。在本地 `.env.local` 配置以下变量，不要提交真实值：
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY
+- AGNES_API_KEY、AGNES_BASE_URL
+- DEEPSEEK_API_KEY、DEEPSEEK_BASE_URL
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+开发：`npm run dev`
 
-## Deploy on Vercel
+生产预览：`npm run build`，然后 `npm run start -- --hostname 127.0.0.1 --port 3100`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+运行历史章节导入脚本前，另外设置 NEXT_PUBLIC_SUPABASE_URL 与 SUPABASE_SERVICE_ROLE_KEY 到进程环境；导入凭据仅在服务端使用。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 维护说明
+
+使用 Next.js、React、Tailwind CSS、Supabase 和兼容 OpenAI 的模型接口。字体许可见 src/app/fonts/Noto-OFL.txt。
+
+此前导入脚本中的硬编码凭据已移除，历史版本中的旧值仍需仓库所有者在服务端撤销或轮换。此次提交未改写 Git 历史。

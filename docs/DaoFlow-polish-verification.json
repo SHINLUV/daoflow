@@ -1,0 +1,216 @@
+{
+  "results": [
+    {
+      "name": "Desktop: no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "Hero and new topic image loaded",
+      "passed": true
+    },
+    {
+      "name": "Empty question cannot submit",
+      "passed": true
+    },
+    {
+      "name": "Pause control updates state",
+      "passed": true
+    },
+    {
+      "name": "Theme 1: selection and preview",
+      "passed": true
+    },
+    {
+      "name": "Theme 1: source matches original",
+      "passed": true
+    },
+    {
+      "name": "Theme 1: fills and focuses question",
+      "passed": true
+    },
+    {
+      "name": "Theme 2: selection and preview",
+      "passed": true
+    },
+    {
+      "name": "Theme 2: source matches original",
+      "passed": true
+    },
+    {
+      "name": "Theme 2: fills and focuses question",
+      "passed": true
+    },
+    {
+      "name": "Theme 3: selection and preview",
+      "passed": true
+    },
+    {
+      "name": "Theme 3: source matches original",
+      "passed": true
+    },
+    {
+      "name": "Theme 3: fills and focuses question",
+      "passed": true
+    },
+    {
+      "name": "Theme 4: selection and preview",
+      "passed": true
+    },
+    {
+      "name": "Theme 4: source matches original",
+      "passed": true
+    },
+    {
+      "name": "Theme 4: fills and focuses question",
+      "passed": true
+    },
+    {
+      "name": "Theme 5: selection and preview",
+      "passed": true
+    },
+    {
+      "name": "Theme 5: source matches original",
+      "passed": true
+    },
+    {
+      "name": "Theme 5: fills and focuses question",
+      "passed": true
+    },
+    {
+      "name": "Theme 6: selection and preview",
+      "passed": true
+    },
+    {
+      "name": "Theme 6: source matches original",
+      "passed": true
+    },
+    {
+      "name": "Theme 6: fills and focuses question",
+      "passed": true
+    },
+    {
+      "name": "Suggested question prefills form",
+      "passed": true
+    },
+    {
+      "name": "Daily quote copies to clipboard",
+      "passed": true
+    },
+    {
+      "name": "Whitespace cannot submit",
+      "passed": true
+    },
+    {
+      "name": "Encoded question arrives unchanged at API",
+      "passed": true
+    },
+    {
+      "name": "Failed request can retry successfully",
+      "passed": true
+    },
+    {
+      "name": "Fallback answer explicitly disclosed",
+      "passed": true
+    },
+    {
+      "name": "Returning from result preserves draft",
+      "passed": true
+    },
+    {
+      "name": "Real reading endpoint: chapter 1 available",
+      "passed": true
+    },
+    {
+      "name": "Reading mode hides translation",
+      "passed": true
+    },
+    {
+      "name": "Translation can be restored",
+      "passed": true
+    },
+    {
+      "name": "Chapter selector loads real chapter 81",
+      "passed": true
+    },
+    {
+      "name": "Last chapter has no invalid next link",
+      "passed": true
+    },
+    {
+      "name": "Invalid chapter has useful error state",
+      "passed": true
+    },
+    {
+      "name": "Signed out account shows email login",
+      "passed": true
+    },
+    {
+      "name": "Invalid email blocked before sending",
+      "passed": true
+    },
+    {
+      "name": "Responsive 320px: no overflow",
+      "passed": true
+    },
+    {
+      "name": "Responsive 390px: no overflow",
+      "passed": true
+    },
+    {
+      "name": "Mobile topic interaction works",
+      "passed": true
+    },
+    {
+      "name": "Responsive 768px: no overflow",
+      "passed": true
+    },
+    {
+      "name": "Navigation reflects themes anchor",
+      "passed": true
+    },
+    {
+      "name": "Keyboard selects theme",
+      "passed": true
+    },
+    {
+      "name": "Keyboard has visible focus",
+      "passed": true
+    },
+    {
+      "name": "Navigation reflects about anchor",
+      "passed": true
+    },
+    {
+      "name": "Long question remains within form",
+      "passed": true
+    },
+    {
+      "name": "200% equivalent reflow has no overflow",
+      "passed": true
+    },
+    {
+      "name": "Reduced motion disables scenery animation",
+      "passed": true
+    },
+    {
+      "name": "404 has a working home route",
+      "passed": true
+    },
+    {
+      "name": "No uncaught browser errors",
+      "passed": true
+    }
+  ],
+  "browserErrors": [],
+  "mocked": [
+    "Ask API success, failure and retry"
+  ],
+  "live": [
+    "Homepage",
+    "Daily quote",
+    "Chapters 1 and 81",
+    "Signed-out account",
+    "404"
+  ],
+  "emailSent": false
+}

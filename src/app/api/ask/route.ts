@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { askDao } from '@/lib/ai/askDao'
+import { getLocalChapter } from '@/lib/chapters'
 
 const MAX_QUESTION_LENGTH = 500
 
@@ -86,7 +87,7 @@ export async function POST(request: NextRequest) {
   }
 
   // 4. 获取匹配章节的原文（原文是主角）
-  let originalText: string | null = null
+  let originalText: string | null = getLocalChapter(result.matchedChapter)?.original_text ?? null
 
   if (result.matchedChapter) {
     try {
@@ -96,6 +97,7 @@ export async function POST(request: NextRequest) {
         .from('chapters')
         .select('original_text')
         .eq('id', result.matchedChapter)
+        .abortSignal(AbortSignal.timeout(4000))
         .single()
       if (ch) originalText = ch.original_text
     } catch {

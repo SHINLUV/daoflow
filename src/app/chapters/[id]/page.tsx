@@ -1,134 +1,53 @@
 'use client'
-
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { ArrowLeft, ArrowRight, ArrowClockwise } from '@phosphor-icons/react'
 import NavBar from '@/components/NavBar'
 import CloudBackground from '@/components/CloudBackground'
 import DaoLoading from '@/components/DaoLoading'
-import { CaretLeft, CaretRight } from '@phosphor-icons/react'
 
-interface ChapterData {
-  id: number
-  originalText: string
-  vernacularText: string
-  prevId: number
-  nextId: number
-}
-
-/**
- * 章节阅读页
- *
- * 展示：原文 + 白话译文 + 前/后章节导航
- * 设计：极简阅读体验，留白为主
- */
+interface ChapterData { id: number; originalText: string; vernacularText: string; prevId: number; nextId: number }
 export default function ChapterPage() {
-  const params = useParams()
-  const id = params.id as string
+  const { id } = useParams<{ id: string }>()
+  const router = useRouter()
   const [chapter, setChapter] = useState<ChapterData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState('')
+  const [view, setView] = useState<'both' | 'original'>('both')
+  const [attempt, setAttempt] = useState(0)
+  const valid = /^\d+$/.test(id) && +id >= 1 && +id <= 81
 
   useEffect(() => {
-    if (!id) return
+    setChapter(null)
+    setError('')
+    if (!valid) { setError('章节不存在，请选择第一至第八十一章。'); setLoading(false); return }
+    let active = true
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 20000)
     setLoading(true)
-    fetch(`/api/chapters/${id}`)
-      .then((r) => {
-        if (!r.ok) throw new Error('章节不存在')
+    fetch(`/api/chapters/${id}`, { signal: controller.signal })
+      .then(async r => {
+        if (!r.ok) throw new Error(r.status === 404 ? '暂时未找到本章内容，请稍后重试。' : '暂时无法读取篇章，请稍后重试。')
         return r.json()
       })
-      .then((data) => {
-        setChapter(data)
-        setLoading(false)
-      })
-      .catch((err) => {
-        setError(err.message)
-        setLoading(false)
-      })
-  }, [id])
+      .then(data => { if (active) setChapter(data) })
+      .catch(err => { if (active) setError(err.name === 'AbortError' ? '篇章加载超时，请检查连接后重试。' : err.message) })
+      .finally(() => { clearTimeout(timeout); if (active) setLoading(false) })
+    return () => { active = false; clearTimeout(timeout); controller.abort() }
+  }, [id, attempt, valid])
 
-  return (
-    <div className="relative min-h-screen bg-cloud-white">
-      <CloudBackground />
-      <NavBar />
-
-      <div className="relative z-10 max-w-[640px] mx-auto px-6 pt-32 pb-20">
-        {/* 返回 */}
-        <Link
-          href="/"
-          className="inline-block text-[13px] text-shadow-gray hover:text-ink transition-colors duration-300 mb-16 tracking-wider"
-        >
-          ← 返回问道
-        </Link>
-
-        {loading && <DaoLoading />}
-
-        {error && (
-          <div className="text-center py-20">
-            <p className="text-ink/60 text-sm tracking-wider">{error}</p>
-            <Link href="/" className="text-[13px] text-ridge-blue hover:text-ink transition-colors mt-4 inline-block">
-              回到首页
-            </Link>
-          </div>
-        )}
-
-        {chapter && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            {/* 章节标题 — 无衬线体 18px（参考图规范） */}
-            <span className="title-sans text-lg tracking-[0.1em] text-ink/85 font-medium">
-              第{chapter.id}章
-            </span>
-
-            {/* 原文 — 衬线体 18px（参考图规范 H2） */}
-            <blockquote className="mt-8 text-lg text-ink/85 leading-[2.2] tracking-wider">
-              {chapter.originalText}
-            </blockquote>
-
-            {/* 分隔 */}
-            <div className="mt-10 mb-8 h-px bg-mist-gray/25" />
-
-            {/* 白话译文 — 无衬线标签 */}
-            <h3 className="title-sans text-xs tracking-[0.1em] text-shadow-gray/50 mb-4 font-medium">
-              白话译文
-            </h3>
-            <p className="text-sm text-ink/70 leading-[2] tracking-wider">
-              {chapter.vernacularText}
-            </p>
-
-            {/* 前后导航 */}
-            <div className="mt-16 flex items-center justify-between">
-              {chapter.prevId > 0 ? (
-                <Link
-                  href={`/chapters/${chapter.prevId}`}
-                  className="flex items-center gap-1.5 text-[13px] text-shadow-gray hover:text-ink transition-colors tracking-wider"
-                >
-                  <CaretLeft size={14} />
-                  第{chapter.prevId}章
-                </Link>
-              ) : (
-                <span />
-              )}
-
-              {chapter.nextId > 0 ? (
-                <Link
-                  href={`/chapters/${chapter.nextId}`}
-                  className="flex items-center gap-1.5 text-[13px] text-shadow-gray hover:text-ink transition-colors tracking-wider"
-                >
-                  第{chapter.nextId}章
-                  <CaretRight size={14} />
-                </Link>
-              ) : (
-                <span />
-              )}
-            </div>
-          </motion.div>
-        )}
+  return <div className="relative min-h-screen"><CloudBackground /><NavBar />
+    <main className="dao-reader" id="main-content">
+      <Link href="/" className="dao-back"><ArrowLeft size={15} />返回问道</Link>
+      <div className="dao-reader-top"><div><span className="dao-eyebrow">道德经 · 老子</span><h1>慢慢读，自有所得。</h1></div>
+        <div className="dao-chapter-tools"><label htmlFor="chapter-select">篇章<select id="chapter-select" value={valid ? +id : ''} onChange={e => router.push(`/chapters/${e.target.value}`)}>{!valid && <option value="" disabled>请选择</option>}{Array.from({ length: 81 }, (_, i) => <option value={i + 1} key={i}>第 {i + 1} 章</option>)}</select></label></div>
       </div>
-    </div>
-  )
+      <div className="dao-tab-list" aria-label="阅读模式"><button onClick={() => setView('both')} aria-pressed={view === 'both'}>原文与译文</button><button onClick={() => setView('original')} aria-pressed={view === 'original'}>只读原文</button></div>
+      {loading && <DaoLoading />}
+      {error && <div className="dao-error" role="alert"><h2>让我们稍后再读</h2><p>{error}</p>{valid && <button className="dao-primary" onClick={() => setAttempt(a => a + 1)}><ArrowClockwise size={16} />重新加载</button>}</div>}
+      {chapter && <article className="dao-reading-card"><h2>第{chapter.id}章</h2><blockquote>{chapter.originalText}</blockquote>{view === 'both' && <><div className="dao-reading-divider" /><h3>白话译文</h3><p className="dao-interpretation">{chapter.vernacularText}</p></>}</article>}
+      {valid && <nav className="dao-chapter-nav" aria-label="章节翻页">{+id > 1 ? <Link href={`/chapters/${+id - 1}`}><ArrowLeft size={16} />第{+id - 1}章</Link> : <span />}{+id < 81 && <Link href={`/chapters/${+id + 1}`}>第{+id + 1}章<ArrowRight size={16} /></Link>}</nav>}
+    </main>
+  </div>
 }

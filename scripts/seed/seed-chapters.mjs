@@ -9,10 +9,12 @@ import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-const supabase = createClient(
-  'https://egunlbfokvqiuwtovoto.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVndW5sYmZva3ZxaXV3dG92b3RvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTk3NTQ2MCwiZXhwIjoyMDk1NTUxNDYwfQ.jCqQw_Xn2daQIzpFgFwdj6sRDEduz1babZGlps8wIxc'
-)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+if (!supabaseUrl || !serviceRoleKey) {
+  throw new Error('Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY before importing chapters')
+}
+const supabase = createClient(supabaseUrl, serviceRoleKey)
 
 async function seed() {
   const chapters = JSON.parse(
