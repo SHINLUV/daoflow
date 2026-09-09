@@ -5,7 +5,7 @@ export default defineConfig({
   outputDir: 'output/playwright-production',
   timeout: 30_000,
   use: {
-    baseURL: 'http://127.0.0.1:3200',
+    baseURL: process.env.DAOFLOW_PRODUCTION_BASE_URL ?? 'http://127.0.0.1:3200',
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
     video: 'on',

@@ -1,0 +1,27 @@
+services:
+  app:
+    image: "daoflow:${DAOFLOW_IMAGE_TAG:?Set DAOFLOW_IMAGE_TAG to the Git commit}"
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: "${NEXT_PUBLIC_SUPABASE_URL:?Set NEXT_PUBLIC_SUPABASE_URL}"
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: "${NEXT_PUBLIC_SUPABASE_ANON_KEY:?Set NEXT_PUBLIC_SUPABASE_ANON_KEY}"
+    env_file:
+      - app.env
+    environment:
+      DAOFLOW_RELEASE: "${DAOFLOW_IMAGE_TAG}"
+    ports:
+      - "127.0.0.1:${DAOFLOW_APP_PORT:-18083}:3000"
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - daoflow
+
+networks:
+  daoflow:
+    name: daoflow

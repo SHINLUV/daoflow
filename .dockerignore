@@ -1,0 +1,12 @@
+.git
+.next
+.playwright-cli
+node_modules
+output
+.env
+.env.*
+!.env.local.example
+npm-debug.log*
+*.pem
+docs
+screen1-*.png
