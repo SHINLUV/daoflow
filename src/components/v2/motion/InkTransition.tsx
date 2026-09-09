@@ -42,12 +42,15 @@ export function InkTransition({ phase, slow, point, destination, onRetry, onDism
     const x = Math.max(.12, Math.min(.88, point.x)) * width
     const y = Math.max(.12, Math.min(.88, point.y)) * height
     const reach = Math.hypot(width, height) * 1.32
+    const revealX = width * (1 - Math.max(.25, Math.min(.75, point.x)))
+    const revealY = height * .48
+    const revealReach = Math.hypot(Math.max(revealX, width - revealX), Math.max(revealY, height - revealY)) / .83
     let frame = 0
     const start = performance.now()
     const paint = (now: number) => {
       const reveal = phase === 'revealing'
       const progress = phase === 'navigating' ? 1 : Math.min(1, (now - start) / (reveal ? INK_REVEAL_MS : INK_COVER_MS))
-      const spread = 1 - Math.pow(1 - progress, 2)
+      const spread = reveal ? progress * progress * (3 - 2 * progress) : 1 - Math.pow(1 - progress, 2)
       ctx.clearRect(0, 0, width, height)
       ctx.globalCompositeOperation = 'source-over'
       if (reveal) { ctx.fillStyle = '#203d3c'; ctx.fillRect(0, 0, width, height) }
@@ -77,7 +80,7 @@ export function InkTransition({ phase, slow, point, destination, onRetry, onDism
         ctx.globalCompositeOperation = 'destination-out'
         for (const [factor, alpha] of [[1.1, .2], [1.04, .4], [1, 1]]) {
           ctx.fillStyle = `rgba(0,0,0,${alpha})`
-          contour(ctx, width * (1 - Math.max(.25, Math.min(.75, point.x))), height * .48, reach * spread * factor, 3.9)
+          contour(ctx, revealX, revealY, revealReach * spread * factor, 3.9)
         }
       }
       ctx.globalCompositeOperation = 'source-over'
@@ -87,12 +90,14 @@ export function InkTransition({ phase, slow, point, destination, onRetry, onDism
     return () => cancelAnimationFrame(frame)
   }, [phase, point.x, point.y])
 
-  return <div className={styles.overlay} data-daoflow-ink-state={phase} data-phase={phase} aria-live="polite" aria-busy={phase !== 'idle' && phase !== 'error'}>
+  return <>
+    <p className={styles.announcement} role="status" aria-live="polite">{(phase === 'covering' || phase === 'navigating') ? `正在前往${destination}，请稍候再选择其他页面。` : ''}</p>
+    <div className={styles.overlay} data-daoflow-ink-state={phase} data-phase={phase} aria-live="polite" aria-busy={phase !== 'idle' && phase !== 'error'}>
     {phase !== 'idle' && phase !== 'error' && <>
       <canvas ref={canvasRef} className={styles.inkCanvas} aria-hidden="true" />
       <div className={styles.destination} aria-hidden="true"><span>山 水 之 间</span><strong>{destination}</strong><i>道</i></div>
     </>}
     {slow && phase !== 'error' && <p className={styles.loading}>页面正在打开…</p>}
     {phase === 'error' && <section className={styles.failure} role="alert"><h2>这次跳转没有完成</h2><p>页面遮罩已解除。你可以重试，或继续当前操作。</p><div><button type="button" onClick={onRetry}>重试</button><button type="button" onClick={onDismiss}>留在当前页</button></div></section>}
-  </div>
+  </div></>
 }
