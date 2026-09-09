@@ -5,10 +5,10 @@ project:
   source_of_truth: ['docs/redesign-v2/01-PRD.md']
 current_stage: ACCEPTANCE_COMPLETE_WITH_BLOCKERS
 current_gate: external_environment
-current_task: {id: 'POLISH', description: '视觉精修与PV-01返工独立复验通过；外部私密服务验收待条件', owner: 'V', status: PASS_WITH_EXTERNAL_BLOCKERS}
+current_task: {id: 'INK_REFINE', description: '水墨切屏与显露节奏独立复验通过；外部私密服务验收待条件', owner: 'V', status: PASS_WITH_EXTERNAL_BLOCKERS}
 starting_commit: f3aa69376edd11b0895c8e58fe58274012fa9a1f
-current_commit: 0a96cbf4ce98c2116ab8812495ce93f0a21bb0fa
-last_verified_commit: 0a96cbf4ce98c2116ab8812495ce93f0a21bb0fa
+current_commit: f114fc9caa02105b057ad3f435393f7704b22439
+last_verified_commit: f114fc9caa02105b057ad3f435393f7704b22439
 gate_status:
   prd_complete: PASS
   prd_review: PASS
@@ -57,6 +57,7 @@ visual_polish:
   visual_score: 92
   note: '本轮限定展示范围通过，不替代上述T09全产品验收记录；真实服务BLOCKED和BUSINESS_UAT_PENDING保持。'
 history:
+  - {event: INK_REFINEMENT_R2, result: PASS, candidate: f114fc9caa02105b057ad3f435393f7704b22439, report: docs/redesign-v2/reviews/ink-round-2.md, note: '限定水墨切屏范围；R1意见和节奏返工保留，旧外部条件与业务UAT边界不变。'}
   - {event: VISUAL_POLISH_R1, result: FAIL, candidate: 888565ba7f46eba61577d923892d9002d6f2a72a, report: docs/redesign-v2/reviews/polish-round-1.md, note: 'PV-01重复建议取消后失效；原始FAIL保留。'}
   - {event: VISUAL_POLISH_R2, result: PASS, candidate: 0a96cbf4ce98c2116ab8812495ce93f0a21bb0fa, report: docs/redesign-v2/reviews/polish-round-2.md, note: 'PV-01独立复验关闭；展示范围92/100。'}
   - {event: PRD_REVIEW, result: PASS, report: docs/redesign-v2/02-PRD-REVIEW.md}
