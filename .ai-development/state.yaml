@@ -3,12 +3,13 @@ project:
   name: DaoFlow V2
   root: 'D:\DAOFLOW'
   source_of_truth: ['docs/redesign-v2/01-PRD.md']
-current_stage: ACCEPTANCE_COMPLETE_WITH_BLOCKERS
-current_gate: external_environment
-current_task: {id: 'INK_REFINE', description: '水墨切屏与显露节奏独立复验通过；外部私密服务验收待条件', owner: 'V', status: PASS_WITH_EXTERNAL_BLOCKERS}
+current_stage: INDEPENDENT_ACCEPTANCE
+current_gate: independent_acceptance
+current_task: {id: 'FUNCTIONS', description: '真实本地功能、Auth/RLS 与 Agnes 已完成工程验证；等待未参与开发者在干净候选独立验收', owner: 'Independent acceptance', status: IN_PROGRESS}
+execution_status: ACTIVE
 starting_commit: f3aa69376edd11b0895c8e58fe58274012fa9a1f
-current_commit: f114fc9caa02105b057ad3f435393f7704b22439
-last_verified_commit: f114fc9caa02105b057ad3f435393f7704b22439
+current_commit: 396be58
+last_verified_commit: 396be58
 gate_status:
   prd_complete: PASS
   prd_review: PASS
@@ -17,15 +18,15 @@ gate_status:
   implementation_plan_complete: PASS
   traceability_complete: PASS
   development_entry: PASS
-  implementation_complete: PASS_WITH_EXTERNAL_BLOCKERS
-  engineering_verification: PASS_WITH_EXTERNAL_BLOCKERS
-  independent_acceptance: PASS_WITH_EXTERNAL_BLOCKERS
+  implementation_complete: PASS
+  engineering_verification: PASS
+  independent_acceptance: IN_PROGRESS
   uat: NOT_EXECUTED
   pilot_readiness: NOT_EXECUTED
-readiness: {status: NOT_READY}
+readiness: {status: TECHNICAL_ACCEPTANCE_PENDING}
 blockers:
-  - '本机 Docker Desktop Linux daemon 不可用；隔离 Supabase、迁移、真实 Auth/RLS/RPC 与双账户 E2E 未执行。'
-  - '当前进程未配置 Supabase 公共配置与 OpenAI API Key；私密持久化和真实问答外部路径不能在本轮声称通过。'
+  - '独立验收尚未完成；其结论不得由工程验证替代。'
+  - '真实用户业务UAT、生产部署和远程生产迁移均不在本轮范围。'
 artifacts:
   prd: {path: docs/redesign-v2/01-PRD.md, status: PASS}
   prd_review: {path: docs/redesign-v2/02-PRD-REVIEW.md, status: PASS}
