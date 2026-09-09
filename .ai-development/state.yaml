@@ -1,0 +1,54 @@
+schema_version: 1
+project:
+  name: DaoFlow V2
+  root: 'D:\DAOFLOW'
+  source_of_truth: ['docs/redesign-v2/01-PRD.md']
+current_stage: IMPLEMENTATION_GATES
+current_gate: development_entry
+current_task: {id: T01, description: '建立可运行V2壳层、共享契约并修复缺配置公共页行为', owner: Terra, status: IN_PROGRESS}
+starting_commit: f3aa69376edd11b0895c8e58fe58274012fa9a1f
+current_commit: f3aa69376edd11b0895c8e58fe58274012fa9a1f
+last_verified_commit: null
+gate_status:
+  prd_complete: PASS
+  prd_review: PASS
+  spec_complete: PASS
+  spec_review: PASS
+  implementation_plan_complete: PASS
+  traceability_complete: PASS
+  development_entry: PASS
+  implementation_complete: NOT_EXECUTED
+  engineering_verification: NOT_EXECUTED
+  independent_acceptance: NOT_EXECUTED
+  uat: NOT_EXECUTED
+  pilot_readiness: NOT_EXECUTED
+readiness: {status: NOT_READY}
+blockers: []
+artifacts:
+  prd: {path: docs/redesign-v2/01-PRD.md, status: PASS}
+  prd_review: {path: docs/redesign-v2/02-PRD-REVIEW.md, status: PASS}
+  technical_spec: {path: docs/redesign-v2/03-DESIGN-AND-TECH-SPEC.md, status: PASS}
+  spec_review: {path: docs/redesign-v2/04-SPEC-REVIEW-R2.md, status: PASS}
+  implementation_plan: {path: docs/redesign-v2/05-IMPLEMENTATION-PLAN.md, status: PASS}
+  requirement_traceability: {path: docs/redesign-v2/06-TRACEABILITY.md, status: PASS}
+  plan_review: {path: docs/redesign-v2/09-PLAN-REVIEW.md, status: PASS}
+  acceptance_report: {path: null, status: NOT_EXECUTED}
+verification:
+  acceptance_commit: null
+  unit: {status: NOT_EXECUTED, evidence: []}
+  integration: {status: NOT_EXECUTED, evidence: []}
+  api: {status: NOT_EXECUTED, evidence: []}
+  e2e: {status: NOT_EXECUTED, evidence: []}
+  runtime: {status: NOT_EXECUTED, evidence: []}
+  uat: {status: NOT_EXECUTED, evidence: []}
+independent_review:
+  status: NOT_EXECUTED
+  report: null
+  note: '当前完成的是独立规划审查，产品独立验收尚未执行'
+history:
+  - {event: PRD_REVIEW, result: PASS, report: docs/redesign-v2/02-PRD-REVIEW.md}
+  - {event: SPEC_REVIEW_R1, result: FAIL, report: docs/redesign-v2/04-SPEC-REVIEW.md}
+  - {event: SPEC_REVIEW_R2, result: PASS, report: docs/redesign-v2/04-SPEC-REVIEW-R2.md}
+  - {event: PLAN_REVIEW, result: PASS, report: docs/redesign-v2/09-PLAN-REVIEW.md}
+  - {event: DEVELOPMENT_ENTRY, result: PASS, note: '六项文档具备且审查通过；未开始产品实现；交接时需复核HEAD/hash'}
+  - {event: T00_HANDOFF_CHECK, result: PASS, note: 'HEAD和有效审查hash已核对；环境与继承基线结果见docs/redesign-v2/DECISIONS.md；本地真实Supabase仍未建立'}
