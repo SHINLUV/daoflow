@@ -3,13 +3,13 @@ project:
   name: DaoFlow V2
   root: 'D:\DAOFLOW'
   source_of_truth: ['docs/redesign-v2/01-PRD.md']
-current_stage: INDEPENDENT_ACCEPTANCE
-current_gate: independent_acceptance
-current_task: {id: 'FUNCTIONS', description: 'Round 2 独立验收以 PARTIAL 关闭；五项浏览器边界待由新的独立验收者补测，禁止由已有自测或 skipped 测试替代', owner: 'Independent acceptance', status: IN_PROGRESS}
-execution_status: ACTIVE
+current_stage: BUSINESS_UAT_PENDING
+current_gate: uat
+current_task: {id: 'FUNCTIONS', description: '真实本地功能、Auth/RLS、Agnes 与独立技术验收已完成；不代替产品负责人的真实业务 UAT', owner: 'Product owner', status: COMPLETE}
+execution_status: WAITING_FOR_BUSINESS_UAT
 starting_commit: f3aa69376edd11b0895c8e58fe58274012fa9a1f
-current_commit: 396be58
-last_verified_commit: 396be58
+current_commit: f9067d9302c88096487527e6da554efa720a33c4
+last_verified_commit: f9067d9302c88096487527e6da554efa720a33c4
 gate_status:
   prd_complete: PASS
   prd_review: PASS
@@ -20,12 +20,12 @@ gate_status:
   development_entry: PASS
   implementation_complete: PASS
   engineering_verification: PASS
-  independent_acceptance: PARTIAL
+  independent_acceptance: PASS
   uat: NOT_EXECUTED
   pilot_readiness: NOT_EXECUTED
-readiness: {status: TECHNICAL_ACCEPTANCE_PENDING}
+readiness: {status: BUSINESS_UAT_PENDING}
 blockers:
-  - 'Round 2 独立验收为 PARTIAL：跨标签草稿/退出清理、受控 Agnes/保存失败与仅重试保存、超过20项混合分页、日期边界与5MB导出、完整键盘/reduce-motion/性能 trace 尚待新的独立验收实际执行。'
+  - 'BUSINESS_UAT_PENDING：真实业务用户仍需自行确认其内容、流程和商业可用性；技术验收不代签。'
   - '真实用户业务UAT、生产部署和远程生产迁移均不在本轮范围。'
 artifacts:
   prd: {path: docs/redesign-v2/01-PRD.md, status: PASS}
@@ -37,19 +37,24 @@ artifacts:
   plan_review: {path: docs/redesign-v2/09-PLAN-REVIEW.md, status: PASS}
   acceptance_report: {path: docs/redesign-v2/reviews/round-1.md, status: PASS_WITH_EXTERNAL_BLOCKERS}
   functions_round_2_acceptance: {path: docs/redesign-v2/reviews/round-2-independent-functions.md, status: PARTIAL}
+  functions_round_3_boundary_reacceptance: {path: docs/redesign-v2/reviews/round-3-independent-boundary-reacceptance.md, status: FAIL_PRESERVED_AND_REPAIRED}
+  functions_round_4_timeout_reacceptance: {path: docs/redesign-v2/reviews/round-4-independent-timeout-reacceptance.md, status: FAIL_PRESERVED_EXTERNAL_RATE_DIAGNOSED}
+  functions_round_5_final_ask_reacceptance: {path: docs/redesign-v2/reviews/round-5-independent-final-ask-reacceptance.md, status: EXTERNAL_BLOCKED_PRESERVED}
+  functions_round_6_agnes_recovery: {path: docs/redesign-v2/reviews/round-6-independent-agnes-recovery.md, status: PASS}
 verification:
   acceptance_commit: 6315e69e3944bc1157bf7eb4e8c718acc516d89b
+  functions_acceptance_commit: f9067d9302c88096487527e6da554efa720a33c4
   unit: {status: PASS, evidence: [docs/redesign-v2/evidence/T08/6315e69/command-summary.md]}
   integration: {status: PASS_WITH_EXTERNAL_BLOCKERS, evidence: [docs/redesign-v2/evidence/T08/6315e69/command-summary.md]}
   api: {status: PASS_WITH_EXTERNAL_BLOCKERS, evidence: [docs/redesign-v2/evidence/T08/6315e69/command-summary.md]}
   e2e: {status: PASS_WITH_EXTERNAL_BLOCKERS, evidence: [docs/redesign-v2/evidence/T08/6315e69/command-summary.md]}
   runtime: {status: PASS, evidence: [docs/redesign-v2/evidence/T08/6315e69/command-summary.md]}
-  independent_acceptance: {status: PARTIAL, evidence: [docs/redesign-v2/reviews/round-1.md, docs/redesign-v2/reviews/round-2-independent-functions.md, docs/redesign-v2/evidence/FUNCTIONS/RUNTIME-VERIFICATION.md]}
+  independent_acceptance: {status: PASS, evidence: [docs/redesign-v2/reviews/round-2-independent-functions.md, docs/redesign-v2/reviews/round-3-independent-boundary-reacceptance.md, docs/redesign-v2/reviews/round-4-independent-timeout-reacceptance.md, docs/redesign-v2/reviews/round-5-independent-final-ask-reacceptance.md, docs/redesign-v2/reviews/round-6-independent-agnes-recovery.md, docs/redesign-v2/evidence/FUNCTIONS/RUNTIME-VERIFICATION.md]}
   uat: {status: NOT_EXECUTED, evidence: []}
 independent_review:
-  status: PARTIAL
-  report: docs/redesign-v2/reviews/round-2-independent-functions.md
-  note: '新的独立验收者已真实复验本地 Auth/JWT/RLS/Agnes 与浏览器核心闭环；五项浏览器边界未执行，未升格为 PASS。'
+  status: PASS
+  report: docs/redesign-v2/reviews/round-6-independent-agnes-recovery.md
+  note: 'Round 2 PARTIAL、Round 3 和 Round 4 原始 FAIL、Round 5 EXTERNAL_BLOCKED 均保留；Round 3 超时分类修复和 Round 6 冷却后的真实 Agnes/JWT/RLS 复验已关闭技术门禁。'
 visual_polish:
   status: PASS
   candidate: 0a96cbf4ce98c2116ab8812495ce93f0a21bb0fa
@@ -72,3 +77,8 @@ history:
   - {event: T02_TO_T08_IMPLEMENTATION, result: PASS_WITH_EXTERNAL_BLOCKERS, commit: 6315e69e3944bc1157bf7eb4e8c718acc516d89b, evidence: docs/redesign-v2/evidence/T08/6315e69/command-summary.md, note: '美术、首页、心笺、卷册、经典收藏、批注、搜索、导出、记录转问道与动效已集成；工程回归与性能通过。真实 Supabase/Auth/RLS/RPC/双账户路径保持 BLOCKED。'}
   - {event: T09_INDEPENDENT_ACCEPTANCE_R1, result: PASS_WITH_EXTERNAL_BLOCKERS, reviewer: V, candidate: 6315e69e3944bc1157bf7eb4e8c718acc516d89b, report: docs/redesign-v2/reviews/round-1.md, note: '真实生产浏览器、桌面/手机视觉、动效帧及移动 Lighthouse 已独立复核；R1/R2 FAIL 已关闭，私密服务和业务UAT未外推。'}
   - {event: FUNCTIONS_INDEPENDENT_ACCEPTANCE_R2, result: PARTIAL, reviewer: independent_function_acceptance, candidate: a933f6d14afdde99fbf17a530c1ddb1ceb8f2d61, report: docs/redesign-v2/reviews/round-2-independent-functions.md, note: '真实本地核心功能和安全闭环通过；五项未执行浏览器边界保留为门禁，禁止以工程自证替代。'}
+  - {event: FUNCTIONS_INDEPENDENT_ACCEPTANCE_R3, result: FAIL, reviewer: independent_boundary_reacceptance, candidate: 03cfed9c08af0f58882832af66cf3615cd68c007, report: docs/redesign-v2/reviews/round-3-independent-boundary-reacceptance.md, note: '保留超时被误标为服务不可用的真实浏览器 FAIL；其余五项边界通过。'}
+  - {event: ASK_TIMEOUT_CLASSIFICATION_FIX, result: PASS, commit: f9067d9302c88096487527e6da554efa720a33c4, note: '将 Request timed out. 等实际库超时错误归类为 timeout，并新增回归测试。'}
+  - {event: FUNCTIONS_INDEPENDENT_ACCEPTANCE_R4, result: FAIL, reviewer: independent_timeout_reacceptance, candidate: f9067d9302c88096487527e6da554efa720a33c4, report: docs/redesign-v2/reviews/round-4-independent-timeout-reacceptance.md, note: '超时和仅重试保存修复通过；当时真实 Agnes 429 降级为 DeepSeek，原始 FAIL 保留。'}
+  - {event: FUNCTIONS_INDEPENDENT_ACCEPTANCE_R5, result: EXTERNAL_BLOCKED, reviewer: independent_final_ask_reacceptance, candidate: e55514bfba24ffa5766dc0ea829296fb6e50d111, report: docs/redesign-v2/reviews/round-5-independent-final-ask-reacceptance.md, note: '正常浏览器 Agnes 已通过；紧随其后的双 JWT 脚本碰到外部限流，未把 DeepSeek 当 Agnes 成功。'}
+  - {event: FUNCTIONS_INDEPENDENT_ACCEPTANCE_R6, result: PASS, reviewer: independent_agnes_recovery_reacceptance, candidate: 65e3e6b8ccf1a9b55162106c7c7a69cee1e692bc, report: docs/redesign-v2/reviews/round-6-independent-agnes-recovery.md, note: '静默冷却180秒后唯一一次真实双 JWT/API/Agnes 验证通过，关闭外部门禁；BUSINESS_UAT_PENDING 保留。'}
