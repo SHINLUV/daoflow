@@ -1,0 +1,43 @@
+.realms { width: min(1320px, calc(100% - 120px)); margin-inline: auto; padding: 100px 0 76px; color: var(--v2-ink); }
+.sectionHeading { display:flex; align-items:flex-end; justify-content:space-between; gap:32px; margin-bottom:38px; }
+.kicker { margin:0; color:var(--v2-stone-blue); font-size:11px; font-weight:600; letter-spacing:.18em; }
+.sectionHeading h2 { margin:14px 0 0; font-family:var(--dao-serif); font-size:clamp(30px,3vw,44px); font-weight:500; line-height:1.4; letter-spacing:.025em; }
+.sectionHeading > p { max-width:300px; margin:0; color:var(--v2-ink-muted); font-size:14px; line-height:1.9; }
+.galleryMeta { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-top:1px solid var(--v2-hairline); }
+.galleryMeta > span { color:var(--v2-ink-muted); font-size:10px; letter-spacing:.2em; }
+.galleryMeta > div { display:flex; align-items:center; gap:8px; }
+.counter { margin-right:12px; color:var(--v2-cinnabar); font-size:13px; font-variant-numeric:tabular-nums; }
+.counter i { color:var(--v2-ink-muted); font-size:11px; font-style:normal; }
+.galleryMeta button { display:grid; place-items:center; width:44px; height:44px; border:1px solid var(--v2-hairline); background:transparent; color:var(--v2-stone-blue); transition:background .2s; }
+.galleryMeta button:hover { background:rgb(49 94 96 / 8%); }
+.realmRail { position:relative; display:flex; gap:9px; width:100%; padding:3px; margin:-3px; isolation:isolate; }
+.realmCard { position:relative; flex:1 1 0%; min-width:0; height:440px; overflow:hidden; isolation:isolate; padding:22px 18px; border:0; border-radius:1px; color:#faf4e6; background:var(--v2-stone-blue); text-align:left; transition:flex-grow 700ms cubic-bezier(.22,1,.36,1); }
+.realmCard[aria-selected="true"] { flex-grow:2; }
+.realmCard::after { content:''; position:absolute; inset:9px; border:1px solid rgb(225 201 151 / 38%); pointer-events:none; opacity:.45; transition:opacity .4s; }
+.realmCard[aria-selected="true"]::after { opacity:1; }
+.realmCard img { object-fit:cover; pointer-events:none; transform:scale(1.025); filter:saturate(.78); transition:transform 900ms cubic-bezier(.22,1,.36,1),filter .6s; }
+.realmCard[aria-selected="true"] img { transform:scale(1); filter:saturate(1); }
+.realmWash { position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg, rgb(16 39 38 / 12%),transparent 36%,rgb(16 39 38 / 75%)); }
+.cardNumber,.realmWord,.realmCard strong,.cardFoot { position:absolute; z-index:1; pointer-events:none; }
+.cardNumber { top:25px; left:23px; font-size:10px; letter-spacing:.14em; writing-mode:vertical-rl; color:#294846; }
+.realmWord { top:55px; right:20px; font-family:var(--dao-serif); font-size:clamp(38px,4vw,58px); font-weight:400; color:#294846; }
+.realmCard strong { bottom:58px; left:23px; font-family:var(--dao-serif); font-size:18px; font-weight:500; letter-spacing:.14em; writing-mode:vertical-rl; }
+.cardFoot { bottom:24px; left:23px; right:23px; display:flex; justify-content:space-between; align-items:center; font-size:10px; letter-spacing:.14em; opacity:0; transition:opacity .3s; white-space:nowrap; }
+.realmCard[aria-selected="true"] .cardFoot { opacity:.9; }
+.realmCard:focus-visible,.galleryMeta button:focus-visible,.questionChoices button:focus-visible { outline:2px solid var(--v2-cinnabar); outline-offset:3px; }
+.realmDetail { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(280px,.9fr); gap:48px; padding:36px 0 24px; border-bottom:1px solid var(--v2-hairline); }
+.quoteBlock { display:flex; align-items:flex-start; gap:20px; animation:arrive .45s ease-out both; }
+.detailSeal { display:grid; place-items:center; flex:none; margin-top:3px; width:38px; height:42px; border:1px solid var(--v2-cinnabar); color:var(--v2-cinnabar); font-family:var(--dao-serif); font-size:23px; }
+.realmDetail h3 { margin:15px 0 12px; font-family:var(--dao-serif); font-size:clamp(23px,2.3vw,31px); font-weight:500; line-height:1.5; }
+.realmDetail p:not(.kicker) { margin:0; color:var(--v2-ink-muted); font-size:14px; line-height:1.8; }
+.questionChoices { display:grid; gap:2px; }
+.questionChoices > span { margin-bottom:8px; color:var(--v2-ink-muted); font-size:11px; letter-spacing:.08em; }
+.questionChoices button { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px; padding:10px 0; border:0; border-bottom:1px solid var(--v2-hairline); color:var(--v2-ink); background:transparent; text-align:left; font-size:14px; }
+.questionChoices button svg { flex:none; color:var(--v2-stone-blue); transition:transform .25s; }
+.questionChoices button:hover { color:var(--v2-cinnabar); }
+.questionChoices button:hover svg { transform:translate(2px,-2px); }
+@keyframes arrive { from { opacity:.3; transform:translateY(5px); } to { opacity:1; transform:none; } }
+@media(max-width:1023px) { .realms { width:calc(100% - 64px); }.realmCard { height:370px; padding:15px 10px; }.realmWord { right:12px; font-size:40px; }.cardNumber,.realmCard strong { left:17px; }.realmDetail { gap:26px; } }
+@media(max-width:760px) { .realms { width:calc(100% - 40px); padding:58px 0 44px; }.sectionHeading { flex-direction:column; align-items:flex-start; gap:14px; margin-bottom:24px; }.sectionHeading > p { max-width:32em; }.galleryMeta > span { font-size:9px; letter-spacing:.1em; }.realmRail { overflow-x:auto; scroll-snap-type:x mandatory; overscroll-behavior-x:contain; scrollbar-width:thin; scrollbar-color:rgb(49 94 96 / 25%) transparent; padding-bottom:12px; }.realmCard,.realmCard[aria-selected="true"] { flex:0 0 78%; height:350px; scroll-snap-align:start; transition:none; }.realmWord { top:42px; right:24px; font-size:54px; }.cardNumber,.realmCard strong { left:24px; }.realmDetail { grid-template-columns:1fr; gap:25px; padding-top:25px; }.quoteBlock { gap:15px; }.cardFoot { opacity:.85; } }
+.realms[data-motion="off"] *, .realms[data-motion="off"] *::after { transition:none!important; animation:none!important; }
+@media(prefers-reduced-motion:reduce) { .realms *, .realms *::after { transition:none!important; animation:none!important; scroll-behavior:auto!important; } }

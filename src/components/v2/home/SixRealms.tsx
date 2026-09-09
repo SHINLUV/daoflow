@@ -1,9 +1,10 @@
 'use client'
 
 import Image from 'next/image'
-import { useState } from 'react'
-import { ArrowUpRight } from '@phosphor-icons/react'
-import styles from './home.module.css'
+import { useRef, useState, type KeyboardEvent } from 'react'
+import { ArrowLeft, ArrowRight, ArrowUpRight } from '@phosphor-icons/react'
+import { useDaoNavigation } from '../motion/MotionProvider'
+import styles from './realms.module.css'
 
 export const REALMS = [
   { id: 'still', title: '焦虑与情绪', word: '静', image: '/daoflow-v2/a03-still-water.webp', chapter: 16, quote: '致虚极，守静笃。', description: '让纷扰沉淀，听见内心的声音。', prompts: ['最近总是很焦虑，停不下来。', '我想知道怎样和情绪待在一起。', '这份不安，是否在提醒我什么？'] },
@@ -16,17 +17,38 @@ export const REALMS = [
 
 export function SixRealms({ onChooseQuestion }: { onChooseQuestion: (question: string) => void }) {
   const [active, setActive] = useState(0)
+  const tabs = useRef<(HTMLButtonElement | null)[]>([])
+  const { motionEnabled } = useDaoNavigation()
   const realm = REALMS[active]
-  return <section className={styles.realms} aria-labelledby="realm-title">
+  function select(index: number, focus = false) {
+    const next = (index + REALMS.length) % REALMS.length
+    setActive(next)
+    if (focus) tabs.current[next]?.focus({ preventScroll: true })
+    // Only move the gallery's native scroll area, never the document viewport.
+    const tab = tabs.current[next]
+    const rail = tab?.parentElement
+    if (tab && rail && rail.scrollWidth > rail.clientWidth) {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      rail.scrollTo({ left: tab.offsetLeft - rail.offsetLeft, behavior: motionEnabled && !reduced ? 'smooth' : 'instant' })
+    }
+  }
+  function onKey(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    const next = event.key === 'ArrowRight' ? index + 1 : event.key === 'ArrowLeft' ? index - 1 : event.key === 'Home' ? 0 : event.key === 'End' ? REALMS.length - 1 : null
+    if (next === null) return
+    event.preventDefault()
+    select(next, true)
+  }
+  return <section id="six-realms" className={styles.realms} data-motion={motionEnabled ? 'on' : 'off'} aria-labelledby="realm-title">
     <header className={styles.sectionHeading}><div><p className={styles.kicker}>六 境 · 由 心 入 道</p><h2 id="realm-title">每一种心境，都有回响。</h2></div><p>选一境，看一段原文，再把真正想问的事写下来。</p></header>
-    <div className={styles.realmRail} role="tablist" aria-label="选择心境">
-      {REALMS.map((item, index) => <button key={item.id} type="button" role="tab" aria-selected={active === index} className={active === index ? styles.realmActive : styles.realmCard} onClick={() => setActive(index)}>
-        <Image src={item.image} alt={`${item.title}的青绿山水`} fill quality={45} sizes="(max-width: 760px) 68vw, 18vw" />
-        <span className={styles.realmWash} /><span className={styles.realmWord}>{item.word}</span><strong>{item.title}</strong>
+    <div className={styles.galleryMeta}><span>观 山 水 · 照 见 自 己</span><div><span className={styles.counter}>0{active + 1}<i> / 06</i></span><button type="button" onClick={() => select(active - 1)} aria-label="上一境"><ArrowLeft size={18} /></button><button type="button" onClick={() => select(active + 1)} aria-label="下一境"><ArrowRight size={18} /></button></div></div>
+    <div className={styles.realmRail} role="tablist" aria-label="选择心境" aria-orientation="horizontal">
+      {REALMS.map((item, index) => <button ref={node => { tabs.current[index] = node }} key={item.id} id={`realm-tab-${item.id}`} type="button" role="tab" aria-label={item.title} aria-controls="realm-panel" tabIndex={active === index ? 0 : -1} aria-selected={active === index} className={styles.realmCard} onClick={() => select(index)} onKeyDown={event => onKey(event, index)}>
+        <Image src={item.image} alt={`${item.title}的青绿山水`} fill quality={45} sizes="(max-width: 760px) 72vw, 25vw" loading="lazy" />
+        <span className={styles.realmWash} /><span className={styles.cardNumber}>卷 · 0{index + 1}</span><span className={styles.realmWord}>{item.word}</span><strong>{item.title}</strong><span className={styles.cardFoot}>入此境 <ArrowUpRight size={17} /></span>
       </button>)}
     </div>
-    <article className={styles.realmDetail} aria-live="polite">
-      <div><p className={styles.kicker}>{realm.word} · 《道德经》第 {realm.chapter} 章</p><h3>{realm.quote}</h3><p>{realm.description}</p></div>
+    <article id="realm-panel" role="tabpanel" aria-labelledby={`realm-tab-${realm.id}`} className={styles.realmDetail} tabIndex={0}>
+      <div key={realm.id} className={styles.quoteBlock}><span className={styles.detailSeal} aria-hidden="true">{realm.word}</span><div><p className={styles.kicker}>{realm.word} · 《道德经》第 {realm.chapter} 章</p><h3>{realm.quote}</h3><p>{realm.description}</p></div></div>
       <div className={styles.questionChoices}><span>可以从这里开始</span>{realm.prompts.map(question => <button type="button" key={question} onClick={() => onChooseQuestion(question)}>{question}<ArrowUpRight size={15} /></button>)}</div>
     </article>
   </section>
