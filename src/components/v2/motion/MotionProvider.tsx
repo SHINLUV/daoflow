@@ -2,7 +2,7 @@
 
 import { createContext, MouseEvent as ReactMouseEvent, PropsWithChildren, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { InkTransition } from './InkTransition'
+import { InkTransition, INK_COVER_MS, INK_REVEAL_MS } from './InkTransition'
 
 type MotionPhase = 'idle' | 'covering' | 'navigating' | 'revealing' | 'error'
 
@@ -13,8 +13,8 @@ type DaoNavigation = {
 }
 
 const DaoNavigationContext = createContext<DaoNavigation | null>(null)
-const COVER_MS = 340
-const REVEAL_MS = 420
+const COVER_MS = INK_COVER_MS
+const REVEAL_MS = INK_REVEAL_MS
 const SLOW_NOTICE_MS = 1_500
 const FAILSAFE_MS = 5_000
 
@@ -35,6 +35,7 @@ export function MotionProvider({ children }: PropsWithChildren) {
   const targetRef = useRef<string | null>(null)
   const timers = useRef<number[]>([])
   const position = useRef({ x: 0.5, y: 0.5 })
+  const destination = useRef('入境')
 
   const clearTimers = useCallback(() => {
     timers.current.forEach(timer => window.clearTimeout(timer))
@@ -55,13 +56,14 @@ export function MotionProvider({ children }: PropsWithChildren) {
       window.location.assign(href)
       return
     }
+    if (phase !== 'idle') return
     targetRef.current = `${resolved.pathname}${resolved.search}`
-    if (point) position.current = { x: point.x / window.innerWidth, y: point.y / window.innerHeight }
+    position.current = point && (point.x || point.y) ? { x: point.x / window.innerWidth, y: point.y / window.innerHeight } : { x: .5, y: .5 }
+    destination.current = resolved.pathname.startsWith('/chapters') ? '读经典' : resolved.pathname.startsWith('/journal') ? '阅卷册' : resolved.pathname.startsWith('/ask') ? '问道' : resolved.pathname.startsWith('/my-dao') ? '我的道' : '此刻'
     if (!enabled || reducedMotion()) {
       router.push(targetRef.current)
       return
     }
-    if (phase !== 'idle') return
     clearTimers()
     setSlow(false)
     setPhase('covering')
@@ -127,7 +129,7 @@ export function MotionProvider({ children }: PropsWithChildren) {
   const value: DaoNavigation = { navigate, motionEnabled: enabled, setMotionEnabled: setEnabled }
   return <DaoNavigationContext.Provider value={value}>
     {children}
-    <InkTransition phase={phase} slow={slow} point={position.current} onRetry={() => { const href = targetRef.current; finish(); if (href) navigate(href) }} onDismiss={finish} />
+    <InkTransition phase={phase} slow={slow} point={position.current} destination={destination.current} onRetry={() => { const href = targetRef.current; finish(); if (href) router.push(href) }} onDismiss={finish} />
   </DaoNavigationContext.Provider>
 }
 
