@@ -5,10 +5,10 @@ project:
   source_of_truth: ['docs/redesign-v2/01-PRD.md']
 current_stage: IMPLEMENTATION_GATES
 current_gate: development_entry
-current_task: {id: T01, description: '建立可运行V2壳层、共享契约并修复缺配置公共页行为', owner: Terra, status: IN_PROGRESS}
+current_task: {id: 'T02/T03/T04', description: 'Wave 1：A美术首屏、B心笺持久化、C经典收藏并行开发', owner: 'A/B/C', status: IN_PROGRESS}
 starting_commit: f3aa69376edd11b0895c8e58fe58274012fa9a1f
-current_commit: f3aa69376edd11b0895c8e58fe58274012fa9a1f
-last_verified_commit: null
+current_commit: a14f8416e710747c3d64bb9430be1eb997fdf3c9
+last_verified_commit: a14f8416e710747c3d64bb9430be1eb997fdf3c9
 gate_status:
   prd_complete: PASS
   prd_review: PASS
@@ -52,3 +52,4 @@ history:
   - {event: PLAN_REVIEW, result: PASS, report: docs/redesign-v2/09-PLAN-REVIEW.md}
   - {event: DEVELOPMENT_ENTRY, result: PASS, note: '六项文档具备且审查通过；未开始产品实现；交接时需复核HEAD/hash'}
   - {event: T00_HANDOFF_CHECK, result: PASS, note: 'HEAD和有效审查hash已核对；环境与继承基线结果见docs/redesign-v2/DECISIONS.md；本地真实Supabase仍未建立'}
+  - {event: T01_SHARED_SHELL, result: PASS, commit: a14f8416e710747c3d64bb9430be1eb997fdf3c9, evidence: docs/redesign-v2/evidence/T01/a14f8416e710747c3d64bb9430be1eb997fdf3c9/command-summary.md, note: '共享类型、导航、认证回调路径校验和缺配置公共页降级已完成；完整产品工程验证尚未开始'}
