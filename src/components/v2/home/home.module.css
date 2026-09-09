@@ -14,3 +14,61 @@
 @media (pointer: coarse) { .distantLayer,.pineLayer,.mistLayer { animation: none; } } html[data-dao-writing="true"] .distantLayer,html[data-dao-writing="true"] .pineLayer,html[data-dao-writing="true"] .mistLayer,html[data-dao-motion="off"] .distantLayer,html[data-dao-motion="off"] .pineLayer,html[data-dao-motion="off"] .mistLayer { animation-play-state: paused; } @media (prefers-reduced-motion: reduce) { .distantLayer,.pineLayer,.mistLayer { animation: none; }.realmCard,.realmActive { transition-duration: .01ms; } }
 
 .realmCard img,.realmActive img,.realmWash { pointer-events: none; }
+
+/* Editorial refinement: mounted paper, landscape inscription, quiet reveal. */
+.replaceDialog { margin: auto; inset: 0; bottom: 0; color: var(--v2-ink); }
+.replaceDialog::backdrop { background: rgb(37 45 41 / 28%); }
+.hero { min-height: 720px; border-bottom: 1px solid rgb(170 144 96 / 30%); }
+.hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: -1; background: linear-gradient(90deg, rgb(241 235 221 / 68%), transparent 65%); }
+.heroImage { inset: -8px; transform: translate3d(var(--landscape-x, 0px), var(--landscape-y, 0px), 0); transition: transform 800ms cubic-bezier(.2,.7,.2,1); }
+.heroContent { padding: 48px 0 32px; }
+.hero h1 { font-size: clamp(40px, 3.8vw, 54px); letter-spacing: .005em; margin-top: 22px; text-wrap: balance; }
+.lead { font-size: 16px; margin-bottom: 26px; max-width: 34em; }
+.sectionNumber { display: inline-grid; place-items: center; width: 25px; height: 28px; margin-right: 12px; border: 1px solid var(--v2-old-gold); color: var(--v2-cinnabar); font-family: var(--dao-serif); font-size: 14px; letter-spacing: 0; }
+.editor { position: relative; width: min(610px, 100%); padding: 24px 28px; border: 1px solid #c9b995; border-radius: 2px; background: #f8f4e9 url('/daoflow-v2/a09-paper-texture.webp'); box-shadow: 4px 5px 0 -1px #eee6d5, 4px 5px 0 0 #c9b995, 0 16px 32px rgb(75 58 30 / 9%); transition: border-color 180ms, box-shadow 180ms; }
+.editor::before { content: ''; position: absolute; left: 8px; top: 12px; bottom: 12px; width: 2px; border-inline: 1px solid rgb(170 144 96 / 35%); pointer-events: none; }
+.editor:focus-within { border-color: var(--v2-stone-blue); box-shadow: 4px 5px 0 -1px #eee6d5, 4px 5px 0 0 #a9b3a6, 0 18px 38px rgb(49 94 96 / 10%); }
+.modeSwitcher { display: flex; width: fit-content; gap: 24px; margin-bottom: 22px; padding: 0; background: transparent; border: 0; border-radius: 0; }
+.modeSwitcher button { position: relative; padding: 6px 0 10px; min-height: 44px; }
+.modeSwitcher button[aria-selected='true'] { background: transparent; box-shadow: none; color: var(--v2-cinnabar); }
+.modeSwitcher button::after { content: ''; position: absolute; height: 2px; left: 0; right: 0; bottom: 0; background: var(--v2-cinnabar); transform: scaleX(0); transform-origin: left; transition: transform 240ms ease; }
+.modeSwitcher button[aria-selected='true']::after { transform: scaleX(1); }
+.editor label { font-size: 14px; font-weight: 500; letter-spacing: .04em; }
+.editor textarea { line-height: 2; min-height: 112px; }
+.editorFooter > span { font-variant-numeric: tabular-nums; font-size: 12px; }
+.inscription { position: absolute; top: 60px; right: 12%; display: flex; flex-direction: row-reverse; align-items: flex-start; gap: 22px; color: #294846; pointer-events: none; }
+.inscription > span { writing-mode: vertical-rl; font-size: 12px; letter-spacing: .3em; padding-top: 10px; }
+.inscription strong { writing-mode: vertical-rl; font-family: 'STKaiti', 'KaiTi', var(--dao-serif); font-size: clamp(100px, 10vw, 150px); font-weight: 400; line-height: 1.05; letter-spacing: .12em; }
+.inscription i { align-self: flex-end; writing-mode: vertical-rl; border: 1px solid var(--v2-cinnabar); color: var(--v2-cinnabar); padding: 5px 3px; font-family: var(--dao-serif); font-size: 15px; font-style: normal; }
+.heroFootnote { display: flex; justify-content: space-between; gap: 18px; width: min(610px, 100%); margin-top: 27px; color: #526058; font-size: 12px; }
+.heroFootnote a { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; margin-top: -12px; color: var(--v2-stone-blue); white-space: nowrap; }
+.heroFootnote a span { transition: transform 200ms; }.heroFootnote a:hover span { transform: translateY(4px); }
+.daily { display: grid; grid-template-columns: .85fr 1.15fr; gap: 0; padding: 0; margin-top: 28px; margin-bottom: 60px; border: 1px solid #c9b995; background: #f8f4e9; }
+.dailyArt { position: relative; min-height: 420px; overflow: hidden; }
+.dailyArt img { object-fit: cover; object-position: 50% 65%; transition: transform 900ms cubic-bezier(.2,.7,.2,1); }
+.daily:hover .dailyArt img { transform: scale(1.025); }
+.dailyArt > span { position: absolute; top: 34px; left: 32px; writing-mode: vertical-rl; font-family: var(--dao-serif); font-size: 20px; letter-spacing: .2em; color: #252d29; background: rgb(248 244 233 / 90%); padding: 16px 8px; }
+.dailyCopy { position: relative; padding: 48px clamp(28px, 4vw, 64px); border-left: 5px double #c9b995; }
+.daily blockquote { font-size: clamp(28px, 2.7vw, 40px); line-height: 1.65; margin: 28px 0 18px; text-wrap: balance; }
+.dailyNote { font-size: 14px; color: #526058; margin: 0 0 18px; }
+.daily a { font-size: 14px; border-bottom: 1px solid #a5b0a5; }
+.daily .directoryLink { display: flex; justify-content: space-between; width: 100%; margin-top: 26px; border-top: 1px solid #d7ccb7; border-bottom: 0; padding-top: 12px; color: #526058; }
+.about { position: relative; display: grid; grid-template-columns: 1.2fr 1fr; column-gap: 64px; max-width: 1120px; margin: 0 auto; padding: 50px 0 92px; }
+.about > .kicker { grid-column: 1 / -1; }
+.about h2 { font-size: clamp(30px, 3vw, 42px); line-height: 1.65; }
+.about > p:last-of-type { font-size: 15px; line-height: 2.2; color: #526058; align-self: center; max-width: 28em; }
+.colophon { grid-column: 1 / -1; margin-top: 32px; font-size: 12px; letter-spacing: .35em; color: #806c48; }
+.editorialReveal[data-revealed='true'] > section { animation: paperReveal 720ms cubic-bezier(.2,.7,.2,1) both; }
+@keyframes paperReveal { from { transform: translateY(20px); } to { transform: translateY(0); } }
+@media (max-width: 1100px) { .inscription { right: 6%; opacity: .7; }.inscription strong { font-size: 100px; }.heroContent { width: calc(100% - 80px); }.about { width: calc(100% - 80px); } }
+@media (max-width: 900px) { .inscription { display: none; } }
+@media (max-width: 760px) {
+  .hero { min-height: 0; }.hero::after { background: linear-gradient(180deg, rgb(241 235 221 / 75%), rgb(241 235 221 / 90%) 60%, rgb(241 235 221 / 48%)); }
+  .heroContent { width: calc(100% - 40px); padding: 32px 0 24px; }.hero h1 { font-size: clamp(28px, 8.4vw, 34px); line-height: 1.4; margin: 16px 0 12px; }.lead { font-size: 14px; line-height: 1.9; margin-bottom: 20px; }
+  .editor { padding: 18px 20px; }.editor textarea { min-height: 100px; }.modeSwitcher { margin-bottom: 18px; gap: 24px; }.heroFootnote { margin-top: 24px; font-size: 11px; }.heroFootnote > span { max-width: 19em; }
+  .daily { grid-template-columns: 1fr; margin-top: 16px; margin-bottom: 24px; }.dailyArt { min-height: 180px; }.dailyArt img { object-position: 50% 58%; }.dailyArt > span { top: 18px; left: 20px; font-size: 16px; padding: 8px 5px; }.dailyCopy { padding: 28px 24px; border-left: 0; border-top: 4px double #c9b995; }.daily blockquote { font-size: 27px; margin-top: 22px; }.about { width: calc(100% - 40px); grid-template-columns: 1fr; padding: 38px 0 64px; }.about h2 { font-size: 30px; }.about > p:last-of-type { margin-top: 20px; }.colophon { margin-top: 20px; }
+}
+:global(html[data-dao-motion='off']) .heroImage { transform: none; }
+:global(html[data-dao-motion='off']) .editorialReveal > section { animation: none; }
+:global(html[data-dao-motion='off']) .dailyArt img { transition: none; transform: none; }
+@media (prefers-reduced-motion: reduce) { .heroImage { transform: none; transition: none; }.editorialReveal[data-revealed='true'] > section { animation: none; }.dailyArt img { transition: none; transform: none !important; } }

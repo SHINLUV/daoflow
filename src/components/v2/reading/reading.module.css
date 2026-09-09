@@ -1,4 +1,11 @@
 .readingPage { width: min(760px, calc(100% - 40px)); margin: 48px auto 88px; color: var(--v2-ink); }
+.readingPage { border-top: 4px double #b6a17b; padding-top: 30px; }
+.chapterTitle { text-wrap: balance; }
+.originalSection { position: relative; box-shadow: 4px 5px 0 #e8dfcc; background-image: linear-gradient(rgb(248 244 233 / 88%), rgb(248 244 233 / 88%)), url('/daoflow-v2/a09-paper-texture.webp'); }
+.chapterLink { transition: border-color 200ms ease, background 200ms ease, transform 200ms ease; }
+.chapterLink:hover { transform: translateY(-2px); }
+.chapterNav a { border-bottom: 1px solid #b6a17b; padding: 8px 0; }
+@media (prefers-reduced-motion: reduce) { .chapterLink { transition: none; }.chapterLink:hover { transform: none; } }
 .chapterKicker { margin: 0; color: var(--v2-stone-blue); font-size: 14px; letter-spacing: .12em; }
 .chapterTitle { margin: 10px 0 32px; font-family: var(--dao-serif); font-size: clamp(32px, 5vw, 48px); font-weight: 400; line-height: 1.35; }
 .originalSection,.vernacularSection,.favoritesSection { padding: 28px; border-top: 1px solid var(--v2-hairline); background: rgb(248 244 233 / 72%); }
