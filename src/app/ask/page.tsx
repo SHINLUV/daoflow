@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { FormEvent, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Check, Copy, ArrowUpRight } from '@phosphor-icons/react'
@@ -56,6 +56,10 @@ const ATTEMPT_KEY = 'daoflow:ask:attempt'
 const MAX_STATUS_POLLS = 8
 
 export default function AskPage() {
+  return <Suspense fallback={<main id="main-content" className="dao-reader"><p role="status">正在载入问道…</p></main>}><AskPageContent /></Suspense>
+}
+
+function AskPageContent() {
   const searchParams = useSearchParams()
   const historySessionId = searchParams.get('sessionId')
   const [supabase] = useState(() => createClient())
