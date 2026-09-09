@@ -12,11 +12,12 @@ import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
+  const origin = callbackOrigin(request, requestUrl)
   const code = requestUrl.searchParams.get('code')
   const next = safeNext(requestUrl.searchParams.get('next'))
 
   if (!isSupabaseConfigured) {
-    return authFailureRedirect(requestUrl.origin, 'unavailable', next)
+    return authFailureRedirect(origin, 'unavailable', next)
   }
 
   if (code) {
@@ -24,18 +25,27 @@ export async function GET(request: Request) {
       const supabase = createClient()
       const { error } = await supabase.auth.exchangeCodeForSession(code)
       if (error) {
-        return authFailureRedirect(requestUrl.origin, 'failed', next)
+        return authFailureRedirect(origin, 'failed', next)
       }
     } catch {
-      return authFailureRedirect(requestUrl.origin, 'unavailable', next)
+      return authFailureRedirect(origin, 'unavailable', next)
     }
   }
 
   if (!code) {
-    return authFailureRedirect(requestUrl.origin, 'missing-code', next)
+    return authFailureRedirect(origin, 'missing-code', next)
   }
 
-  return NextResponse.redirect(new URL(next, requestUrl.origin))
+  return NextResponse.redirect(new URL(next, origin))
+}
+
+function callbackOrigin(request: Request, requestUrl: URL) {
+  // `next start` can normalize request.url to localhost even when a browser
+  // reached the loopback address by IP. Only restore explicitly supported local
+  // origins; never reflect an arbitrary Host header into an auth redirect.
+  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host')
+  if (host === '127.0.0.1:3200' || host === 'localhost:3200') return `http://${host}`
+  return requestUrl.origin
 }
 
 function authFailureRedirect(origin: string, status: string, next: string) {

@@ -57,4 +57,9 @@ describe('auth callback route', () => {
     const response = await GET(new Request('https://daoflow.test/auth/callback?code=value&next=%2F%2509%2Fevil.example'))
     expect(response.headers.get('location')).toBe('https://daoflow.test/journal')
   })
+
+  it('preserves a supported loopback host in the magic-link callback', async () => {
+    const response = await GET(new Request('http://localhost:3200/auth/callback?code=value&next=%2Fmy-dao', { headers: { host: '127.0.0.1:3200' } }))
+    expect(response.headers.get('location')).toBe('http://127.0.0.1:3200/my-dao')
+  })
 })
