@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import Footer from '@/components/Footer'
+import NavBar from '@/components/NavBar'
+import { MotionProvider } from '@/components/v2/motion/MotionProvider'
 import './globals.css'
 
 const notoSerif = localFont({
@@ -33,8 +35,11 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" className={notoSerif.variable}>
       <body>
-        {children}
-        <Footer />
+        <MotionProvider>
+          <NavBar />
+          {children}
+          <Footer />
+        </MotionProvider>
       </body>
     </html>
   )

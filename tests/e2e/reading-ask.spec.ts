@@ -4,6 +4,16 @@ import { test, expect } from '@playwright/test'
 const storageState = process.env.DAOFLOW_E2E_STORAGE_STATE
 const enabled = process.env.DAOFLOW_E2E_READING === '1' && Boolean(storageState && existsSync(storageState))
 
+test('anonymous ask consumes an in-tab draft without leaking it into the URL', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('daoflow:ask:draft', '我想慢一点看清这份焦虑。'))
+  await page.goto('/ask')
+  await expect(page).toHaveURL(/\/ask$/)
+  await expect(page.getByLabel('你的问题')).toHaveValue('我想慢一点看清这份焦虑。')
+  await page.getByRole('button', { name: '问一问道' }).click()
+  await expect(page.getByRole('heading', { name: '我想慢一点看清这份焦虑。' })).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByText(/本次回答不会进入历史|本次回答未保存到云端历史/)).toBeVisible()
+})
+
 test.describe('T04 reading and favorites — real authenticated browser flow', () => {
   test.skip(!enabled, 'BLOCKED: set DAOFLOW_E2E_READING=1 and DAOFLOW_E2E_STORAGE_STATE to a real local-Supabase authenticated storage state after migrations 003 then 004.')
   test.use({ storageState })

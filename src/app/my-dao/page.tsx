@@ -4,7 +4,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, ArrowRight, ArrowClockwise, EnvelopeSimple, CaretDown, SignOut } from '@phosphor-icons/react'
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
-import NavBar from '@/components/NavBar'
 import CloudBackground from '@/components/CloudBackground'
 import DaoLoading from '@/components/DaoLoading'
 import type { User } from '@supabase/supabase-js'
@@ -78,7 +77,7 @@ export default function MyDaoPage() {
     finally { setSigningOut(false) }
   }
 
-  return <div className="relative min-h-screen"><CloudBackground /><NavBar />
+  return <div className="relative min-h-screen"><CloudBackground />
     <main id="main-content" className="dao-account dao-container">
       <div className="dao-account-art"><Image src="/daoflow-valley.png" alt="山水静静流淌" fill sizes="40vw" /><p>走过的每一步，<br />都有自己的意义。</p></div>
       <div className="dao-account-content">

@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test'
 
 test('without private-service configuration, journal preserves the typed content and clearly reports unavailability', async ({ page }) => {
   await page.goto('/journal')
+  await page.getByRole('link', { name: '新建心笺' }).click()
+  await expect(page).toHaveURL(/\/journal\/new$/)
   await page.getByLabel(/^正文/).fill('断网或未配置时，这段内容不能消失。')
   await page.getByRole('button', { name: '保存心笺' }).click()
   await expect(page.getByText('私人记录服务尚未配置')).toBeVisible()

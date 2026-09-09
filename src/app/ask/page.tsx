@@ -3,7 +3,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Check, Copy, ArrowUpRight } from '@phosphor-icons/react'
-import NavBar from '@/components/NavBar'
 
 type Result = { matchedChapter: number; originalText: string | null; interpretation: string; followUpQuestion: string | null; sessionId: string | null; meta: { provider: string; degraded: boolean; persistence: 'saved' | 'failed' | 'not_requested'; persistenceMessage?: string } }
 type Handoff = { question?: string; sourceEntryId?: string; volumeId?: string }
@@ -51,9 +50,9 @@ export default function AskPage() {
     try { await navigator.clipboard.writeText([`问：${question}`, `第${result.matchedChapter}章`, result.originalText, result.interpretation, result.followUpQuestion].filter(Boolean).join('\n\n')); setCopied(true) } catch { setMessage('复制失败，请手动选择文字。') }
   }
 
-  return <div className="relative min-h-screen"><NavBar /><main id="main-content" className="dao-reader">
+  return <div className="relative min-h-screen"><main id="main-content" className="dao-reader">
     <Link href="/" className="dao-back">返回此刻</Link>
-    <p className="dao-eyebrow">与道对话</p><h1>从你的困惑，开始。</h1>
+    <p className="dao-eyebrow">与道对话</p><h1>{result ? question : '从你的困惑，开始。'}</h1>
     {!ready ? <p role="status">正在恢复本标签页的问题…</p> : <form onSubmit={submit} className="dao-reading-card">
       <label htmlFor="ask-question">你的问题</label>
       {handoff.sourceEntryId && <p className="dao-status">此问题关联一条心笺；正文不会写入 URL，也不会被静默截断。</p>}

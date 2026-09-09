@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ArrowUpRight } from '@phosphor-icons/react'
+import { MotionToggle } from '@/components/v2/motion/MotionProvider'
 
 export default function NavBar() {
   const pathname = usePathname()
@@ -18,7 +19,7 @@ export default function NavBar() {
           <Link href="/journal" aria-current={journal ? 'page' : undefined}>我的卷册</Link>
           <Link href="/chapters" aria-current={reading ? 'page' : undefined}>读经典</Link>
         </div>
-        <Link href="/my-dao" className="v2-account" aria-label="登录或查看我的道"><span>我的道</span><ArrowUpRight size={16} /></Link>
+        <div className="v2-account-actions"><MotionToggle /><Link href="/my-dao" className="v2-account" aria-label="登录或查看我的道"><span>我的道</span><ArrowUpRight size={16} /></Link></div>
       </nav>
     </header>
   </>
