@@ -3,6 +3,9 @@
 alter table public.ask_sessions add column if not exists request_id uuid;
 alter table public.ask_sessions add column if not exists source_entry_id uuid;
 alter table public.ask_sessions add column if not exists volume_id uuid;
+-- Required by the same-owner composite foreign keys below. This migration has
+-- not been applied remotely; make the first local 001→006 replay self-contained.
+alter table public.journal_entries add constraint journal_entries_user_id_id_unique unique (user_id, id);
 alter table public.ask_sessions drop constraint if exists ask_sessions_user_request_unique;
 alter table public.ask_sessions add constraint ask_sessions_user_request_unique unique (user_id, request_id);
 alter table public.ask_sessions drop constraint if exists ask_sessions_user_id_id_unique;

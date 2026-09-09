@@ -25,9 +25,10 @@ export async function GET(request: NextRequest) {
     return errorResponse(400, 'INVALID_CHAPTER', '章节须在第一章至第八十一章之间。', requestId)
   }
 
-  let query = authenticated
+  let query = authenticated.supabase
     .from('journal_favorites')
     .select(FAVORITE_COLUMNS)
+    .eq('user_id', authenticated.user.id)
     .order('created_at', { ascending: false })
     .order('id', { ascending: false })
     .limit(FAVORITES_PAGE_SIZE + 1)
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
   const input = parseFavoriteCreate(body)
   if (!input) return errorResponse(400, 'INVALID_FAVORITE', '请选择第一至第八十一章中的连续原文片段，批注不超过2000字。', requestId)
 
-  const { data, error } = await authenticated
+  const { data, error } = await authenticated.supabase
     .rpc('create_favorite', {
       p_id: input.id,
       p_chapter_id: input.chapterId,
@@ -74,7 +75,7 @@ async function getAuthenticatedClient(requestId: string) {
     const supabase = createClient()
     const { data: { user }, error } = await supabase.auth.getUser()
     if (error || !user) return errorResponse(401, 'AUTH_REQUIRED', '请先登录后管理收藏与批注。', requestId)
-    return supabase
+    return { supabase, user }
   } catch {
     return errorResponse(503, 'SUPABASE_UNAVAILABLE', '收藏服务暂不可用；本地经典仍可阅读。', requestId)
   }

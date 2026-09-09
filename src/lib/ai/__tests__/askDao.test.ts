@@ -30,6 +30,7 @@ vi.mock('../callModel', () => ({
 }))
 
 import { askDao } from '../askDao'
+import { FormatError, RateLimitedError, TimeoutError } from '../callModel'
 
 function successResponse(chapter = 44) {
   return JSON.stringify({
@@ -119,5 +120,19 @@ describe('askDao 降级调度', () => {
 
     expect(result.provider).toBe('local_fallback')
     expect(result.matchedChapter).toBe(44)
+  })
+
+  it.each([
+    [new TimeoutError(), 'timeout'],
+    [new RateLimitedError(), 'rate_limited'],
+    [new FormatError(), 'format_error'],
+  ])('保留最终供应商失败分类 %#', async (failure, expectedReason) => {
+    mockCallModel.mockRejectedValueOnce(new Error('Agnes unavailable'))
+    mockCallModel.mockRejectedValueOnce(failure)
+
+    const result = await askDao('我很焦虑')
+
+    expect(result.provider).toBe('local_fallback')
+    expect(result.fallbackReason).toBe(expectedReason)
   })
 })

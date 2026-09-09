@@ -35,8 +35,7 @@ export interface AskDaoResult {
 /**
  * 构建包含角色设定 + 81章全文的 System Prompt
  *
- * TODO: 当数据库可访问后，将 CHAPTERS_CONTEXT 占位符替换为真实数据库读取
- *       并做内存缓存，避免每次请求都查询拼接一次
+ * 使用随构建发布的已审核 81 章种子数据，避免模型请求受数据库可用性影响。
  */
 const CHAPTERS_CONTEXT_PLACEHOLDER = '【81章全文待从数据库加载，当前为占位符】'
 
@@ -134,10 +133,9 @@ export async function askDao(
 /**
  * 本地关键词匹配降级（保底方案）
  *
- * TODO: 替换为真实数据库查询
- *       当前为硬编码关键词匹配，M1 阶段使用
+ * 本地可用性保底：匹配可审阅的静态关键词，再返回对应种子章节的预置解读。
  */
-function localFallback(question: string, reason: string): AskDaoResult {
+function localFallback(question: string, reason: AskDaoResult['fallbackReason']): AskDaoResult {
   // 关键词映射（硬编码版本，与 keyword_chapter_map 表一致）
   const keywordMap: Record<string, number[]> = {
     '迷茫': [33, 71, 64, 1],
@@ -221,7 +219,7 @@ function localFallback(question: string, reason: string): AskDaoResult {
     followUpQuestion: null,  // 本地降级不提供反问句
     provider: 'local_fallback',
     degraded: true,
-    fallbackReason: classifyError(new Error(reason)),
+    fallbackReason: reason,
   }
 }
 

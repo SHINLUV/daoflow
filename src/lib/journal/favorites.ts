@@ -3,6 +3,28 @@ import { getLocalChapter } from '../chapters'
 
 export const FAVORITES_PAGE_SIZE = 20
 
+export function createFavoriteOwnerCoordinator(
+  applyOwner: (ownerId: string | null) => boolean,
+  ensureInitialLoad: () => void,
+) {
+  let authEventObserved = false
+  let initialSettled = false
+  const settleInitial = (changed: boolean) => {
+    if (!initialSettled && !changed) ensureInitialLoad()
+    initialSettled = true
+  }
+  return {
+    observe(ownerId: string | null) {
+      authEventObserved = true
+      settleInitial(applyOwner(ownerId))
+    },
+    resolveGetUser(ownerId: string | null) {
+      if (authEventObserved) return
+      settleInitial(applyOwner(ownerId))
+    },
+  }
+}
+
 type FavoriteRow = {
   id: string
   chapter_id: number
