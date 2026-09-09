@@ -17,6 +17,7 @@
 
 import { callModel, ChatMessage, TimeoutError, RateLimitedError, FormatError } from './callModel'
 import { parseStructuredResponse } from './parseStructuredResponse'
+import { getLocalChapter } from '../chapters'
 
 // ===== 返回结构 =====
 
@@ -39,7 +40,14 @@ export interface AskDaoResult {
  */
 const CHAPTERS_CONTEXT_PLACEHOLDER = '【81章全文待从数据库加载，当前为占位符】'
 
-function buildSystemPrompt(): string {
+export function getLocalChaptersContext(): string {
+  return Array.from({ length: 81 }, (_, index) => {
+    const chapter = getLocalChapter(index + 1)!
+    return `第${chapter.id}章：${chapter.original_text}`
+  }).join('\n')
+}
+
+export function buildSystemPrompt(): string {
   return `你是《道德经》的讲解者，不是心理咨询师。你的任务是根据用户的困惑，从81章中匹配最相关的一章，给出不超过4句的白话解读，并提出一个引导用户自我反思的反问句。
 
 重要规则：
@@ -75,11 +83,8 @@ export async function askDao(
   question: string,
   getChaptersContext?: () => Promise<string>
 ): Promise<AskDaoResult> {
-  const systemPrompt = buildSystemPrompt().replace(
-    CHAPTERS_CONTEXT_PLACEHOLDER,
-    // 如果提供了自定义获取函数（测试mock），使用它；否则用占位符
-    getChaptersContext ? '【使用提供的章节上下文】' : '【数据库未接入，使用AI内置知识】'
-  )
+  const chaptersContext = getChaptersContext ? await getChaptersContext() : getLocalChaptersContext()
+  const systemPrompt = buildSystemPrompt().replace(CHAPTERS_CONTEXT_PLACEHOLDER, chaptersContext)
 
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
@@ -208,17 +213,11 @@ function localFallback(question: string, reason: string): AskDaoResult {
     }
   }
 
-  // 默认解读（TODO: 从数据库 chapters.preset_interpretation 读取）
-  const defaultInterpretations: Record<number, string> = {
-    1: '道可道，非常道。你的困惑本身就是一个开始。放下追问"什么是道"的念头，去留意生活中的自然流动。',
-    33: '知人者智，自知者明。了解别人的人有智慧，了解自己的人才是真正的明达。你需要的不是更多答案，而是更深的自我认识。',
-    44: '知足不辱，知止不殆。知道满足就不会受到羞辱，知道适可而止就不会遇到危险。停下来问自己：我在用生命换什么？值得吗？',
-    64: '千里之行，始于足下。不要被远方的目标吓到，先迈出第一步。慎终如始，则无败事。',
-  }
+  const chapter = getLocalChapter(matchedChapter)!
 
   return {
     matchedChapter,
-    interpretation: defaultInterpretations[matchedChapter] || '大道无形，生育天地。你的困惑需要回到原点，从第一章重新开始。',
+    interpretation: chapter.preset_interpretation,
     followUpQuestion: null,  // 本地降级不提供反问句
     provider: 'local_fallback',
     degraded: true,
