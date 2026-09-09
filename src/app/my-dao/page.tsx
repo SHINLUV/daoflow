@@ -3,7 +3,7 @@ import { FormEvent, useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, ArrowRight, ArrowClockwise, EnvelopeSimple, CaretDown, SignOut } from '@phosphor-icons/react'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
 import NavBar from '@/components/NavBar'
 import CloudBackground from '@/components/CloudBackground'
 import DaoLoading from '@/components/DaoLoading'
@@ -25,6 +25,11 @@ export default function MyDaoPage() {
   const [signingOut, setSigningOut] = useState(false)
 
   useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setUser(null)
+      setError('登录服务尚未配置。你仍可以浏览经典；私人记录功能会在连接完成后开放。')
+      return
+    }
     let active = true
     const timeout = setTimeout(() => { if (active) { setUser(null); setError('登录服务连接较慢，可稍后重试。') } }, 12000)
     supabase.auth.getUser().then(({ data }) => { if (active) { setUser(data.user); clearTimeout(timeout) } }).catch(() => { if (active) { setUser(null); setError('暂时无法连接登录服务。'); clearTimeout(timeout) } })
@@ -50,6 +55,10 @@ export default function MyDaoPage() {
   async function sendLink(e: FormEvent) {
     e.preventDefault()
     if (!email.trim() || sending || sent) return
+    if (!isSupabaseConfigured) {
+      setError('登录服务尚未配置，暂时不能发送登录链接。')
+      return
+    }
     setSending(true)
     setError('')
     try {
@@ -91,7 +100,7 @@ export default function MyDaoPage() {
             <button aria-expanded={expanded === session.id} onClick={() => setExpanded(expanded === session.id ? null : session.id)}><span>{session.question}<time dateTime={session.created_at}>{new Date(session.created_at).toLocaleDateString('zh-CN')}</time></span><CaretDown size={17} style={{ transform: expanded === session.id ? 'rotate(180deg)' : undefined, flexShrink: 0 }} /></button>
             {expanded === session.id && <div className="dao-history-response"><p>{session.ai_response}</p>{session.follow_up_question && <p>{session.follow_up_question}</p>}</div>}
           </article>)}</div>
-          <div className="dao-reader-actions"><Link href="/">再问一次<ArrowRight size={16} /></Link><button onClick={signOut} disabled={signingOut}><SignOut size={16} />{signingOut ? '正在退出' : '退出登录'}</button></div>
+          <div className="dao-reader-actions"><Link href="/journal">进入我的卷册<ArrowRight size={16} /></Link><Link href="/">再问一次<ArrowRight size={16} /></Link><button onClick={signOut} disabled={signingOut}><SignOut size={16} />{signingOut ? '正在退出' : '退出登录'}</button></div>
         </>}
       </div>
     </main>

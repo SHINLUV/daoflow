@@ -6,18 +6,30 @@
  * 然后重定向到目标页面。
  */
 import { createClient } from '@/lib/supabase/server'
+import { isSupabaseConfigured } from '@/lib/supabase/server'
+import { safeNext } from '@/lib/auth/safeNext'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
-  const next = requestUrl.searchParams.get('next') ?? '/my-dao'
+  const next = safeNext(requestUrl.searchParams.get('next'))
+
+  if (!isSupabaseConfigured) {
+    return NextResponse.redirect(new URL('/my-dao?auth=unavailable', requestUrl.origin))
+  }
 
   if (code) {
     const supabase = createClient()
-    await supabase.auth.exchangeCodeForSession(code)
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (error) {
+      return NextResponse.redirect(new URL('/my-dao?auth=failed', requestUrl.origin))
+    }
   }
 
-  // 重定向到目标页面（同源安全）
+  if (!code) {
+    return NextResponse.redirect(new URL('/my-dao?auth=missing-code', requestUrl.origin))
+  }
+
   return NextResponse.redirect(new URL(next, requestUrl.origin))
 }
