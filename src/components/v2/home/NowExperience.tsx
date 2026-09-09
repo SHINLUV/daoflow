@@ -1,0 +1,113 @@
+'use client'
+
+import Image from 'next/image'
+import { FormEvent, useEffect, useRef, useState } from 'react'
+import { ArrowUpRight, CheckCircle, SpinnerGap } from '@phosphor-icons/react'
+import type { CreateEntry } from '@/lib/journal/contracts'
+import { PrimaryButton } from '@/components/v2/shared/PrimaryButton'
+import { StatusMessage } from '@/components/v2/shared/StatusMessage'
+import { EntryMode, EntryModeSwitcher } from './EntryModeSwitcher'
+import styles from './home.module.css'
+
+export type SaveState = 'idle' | 'saving' | 'saved' | 'error'
+export type AuthState = 'loading' | 'authenticated' | 'anonymous' | 'unavailable'
+
+export type NowExperienceProps = {
+  onSaveDraft: (draft: CreateEntry) => Promise<void>
+  onAsk: (question: string) => void
+  saveState: SaveState
+  authState: AuthState
+  suggestedQuestion?: string | null
+}
+
+function newEntryId() {
+  return typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `entry-${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
+export function NowExperience({ onSaveDraft, onAsk, saveState, authState, suggestedQuestion }: NowExperienceProps) {
+  const [mode, setMode] = useState<EntryMode>('record')
+  const [recordDraft, setRecordDraft] = useState('')
+  const [askDraft, setAskDraft] = useState('')
+  const [replacePending, setReplacePending] = useState<string | null>(null)
+  const [localError, setLocalError] = useState('')
+  const editorRef = useRef<HTMLTextAreaElement>(null)
+  const askDraftRef = useRef('')
+  const draft = mode === 'record' ? recordDraft : askDraft
+  const limit = mode === 'record' ? 10_000 : 500
+
+  useEffect(() => {
+    if (!suggestedQuestion) return
+    setMode('ask')
+    if (askDraftRef.current.trim()) setReplacePending(suggestedQuestion)
+    else { askDraftRef.current = suggestedQuestion; setAskDraft(suggestedQuestion) }
+  }, [suggestedQuestion])
+
+  function chooseMode(next: EntryMode) {
+    setMode(next)
+    setLocalError('')
+  }
+
+  function updateDraft(value: string) {
+    const next = value.slice(0, limit)
+    if (mode === 'record') setRecordDraft(next)
+    else { askDraftRef.current = next; setAskDraft(next) }
+  }
+
+  async function submit(event: FormEvent) {
+    event.preventDefault()
+    const content = draft.trim()
+    if (!content || saveState === 'saving') return
+    setLocalError('')
+    if (mode === 'ask') {
+      onAsk(content)
+      return
+    }
+    if (authState !== 'authenticated') {
+      setLocalError(authState === 'unavailable' ? '私人记录服务尚未配置，内容仍留在当前输入框。' : '登录后即可把这段心笺安全保存；内容仍留在当前输入框。')
+      return
+    }
+    try {
+      await onSaveDraft({ id: newEntryId(), body: content })
+      setRecordDraft('')
+    } catch {
+      setLocalError('没有保存成功。你的文字仍在这里，可以检查连接后重试。')
+    }
+  }
+
+  return <section className={styles.hero} aria-labelledby="now-title">
+    <picture className={styles.heroImage}>
+      <source media="(max-width: 760px)" srcSet="/daoflow-v2/a02-mobile-hero.webp" />
+      <Image src="/daoflow-v2/a01-hero-landscape.webp" alt="" fill priority sizes="100vw" />
+    </picture>
+    <Image className={styles.distantLayer} src="/daoflow-v2/a11-distant-mountain-layer.webp" alt="" fill sizes="100vw" />
+    <Image className={styles.pineLayer} src="/daoflow-v2/a12-foreground-pine-layer.webp" alt="" fill sizes="100vw" />
+    <Image className={styles.mistLayer} src="/daoflow-v2/a13-mist-layer.webp" alt="" fill sizes="100vw" />
+    <Image className={styles.seal} src="/daoflow-v2/a10-seal-bookmark.webp" alt="" width={112} height={112} />
+    <div className={styles.heroContent}>
+      <p className={styles.kicker}>此 刻 · 私 人 卷 册</p>
+      <h1 id="now-title">此刻，什么让你挂心？</h1>
+      <p className={styles.lead}>不必写得完整。先把正在心里回响的事，轻轻放在这里。</p>
+      <form className={styles.editor} onSubmit={submit}>
+        <EntryModeSwitcher value={mode} onChange={chooseMode} />
+        <label htmlFor="now-editor">{mode === 'record' ? '写下一句此刻的心事' : '把你想问的事说清楚'}</label>
+        <textarea id="now-editor" ref={editorRef} value={draft} onChange={event => updateDraft(event.target.value)} maxLength={limit} rows={5} placeholder={mode === 'record' ? '今天发生了什么？你想留住怎样的感受？' : '例如：面对这件事，我该从哪里开始看？'} />
+        <div className={styles.editorFooter}>
+          <span>{draft.length} / {limit}</span>
+          <PrimaryButton type="submit" disabled={!draft.trim() || saveState === 'saving'}>
+            {saveState === 'saving' ? <><SpinnerGap className={styles.spinner} size={18} />正在保存</> : mode === 'record' ? <>保存心笺<ArrowUpRight size={18} /></> : <>问一问道<ArrowUpRight size={18} /></>}
+          </PrimaryButton>
+        </div>
+        {saveState === 'saved' && <StatusMessage kind="success"><CheckCircle size={17} weight="fill" /> 已落入你的卷册。</StatusMessage>}
+        {localError && <StatusMessage kind="error">{localError}</StatusMessage>}
+        {authState === 'anonymous' && mode === 'record' && <p className={styles.authHint}>登录后保存；未提交前这段文字只留在当前页面。</p>}
+      </form>
+    </div>
+    {replacePending && <div className={styles.replaceDialog} role="dialog" aria-modal="true" aria-labelledby="replace-title">
+      <h2 id="replace-title">要用六境建议替换现有问题吗？</h2>
+      <p>你的原有文字不会自动丢失。</p>
+      <div><button type="button" onClick={() => setReplacePending(null)}>保留原文</button><PrimaryButton onClick={() => { askDraftRef.current = replacePending; setAskDraft(replacePending); setReplacePending(null); editorRef.current?.focus() }}>替换为建议</PrimaryButton></div>
+    </div>}
+  </section>
+}

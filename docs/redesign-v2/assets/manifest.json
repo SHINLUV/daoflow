@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-09",
+  "generator": "OpenAI built-in image_gen (gpt-image-2)",
+  "license": "Generated for the DaoFlow V2 local product in this task; no external hotlinks or third-party source assets are used.",
+  "assets": [
+    { "id": "A01", "path": "/daoflow-v2/a01-hero-landscape.webp", "alt": "青绿山峦、河湾与薄雾的首页远景", "size": "1536x864", "bytes": 113498, "sha256": "D0029F4643CF3C7D977923EAD99AE0CFF25DDB40CFAD062D662798CEF36633C5", "prompt": "Song-dynasty blue-green landscape with left paper space for the writing panel and mountains on the right" },
+    { "id": "A02", "path": "/daoflow-v2/a02-mobile-hero.webp", "alt": "手机端纵向青绿山水首页背景", "size": "960x1440", "bytes": 106552, "sha256": "8C7870B035CB88F286F6F0CEFFDD25A65837B92A8CD455D2E07BF88BDB1E47D9", "prompt": "Vertical Song-style blue-green landscape with quiet paper space for a mobile writing surface" },
+    { "id": "A03", "path": "/daoflow-v2/a03-still-water.webp", "alt": "静水与苔石，代表焦虑与情绪", "size": "960x1600", "bytes": 173216, "sha256": "903FE122DDA41A2DAC447E11FFE7C3FA17E2A58889FD613CFFE8E4D27BD4652F", "prompt": "Still water, mossy stone and restrained blue-green ink wash" },
+    { "id": "A04", "path": "/daoflow-v2/a04-two-banks.webp", "alt": "两岸与桥影，代表关系与边界", "size": "960x1600", "bytes": 139872, "sha256": "C31F4E390F67BCC17414A00902B876966E4E64B331FE9F3EA3C85393927F1119", "prompt": "Two river banks with a subtle bridge in Song-style blue-green landscape" },
+    { "id": "A05", "path": "/daoflow-v2/a05-forked-stream.webp", "alt": "分流山溪，代表选择与决策", "size": "960x1600", "bytes": 263972, "sha256": "471928C6B48A60E36F205FB651FE1319AED700ABEAA9E324F366B15D3BD666E9", "prompt": "Forked mountain stream through a blue-green Song-dynasty valley" },
+    { "id": "A06", "path": "/daoflow-v2/a06-mountain-path.webp", "alt": "山间小径，代表事业与创业", "size": "960x1600", "bytes": 243408, "sha256": "1D762CCBFA1E2C5A8F35FD39F40BCB0136D0431F5021B6FEE601F5E7C3C2793E", "prompt": "A narrow mountain path rising through terraces, calm Song-style blue-green painting" },
+    { "id": "A07", "path": "/daoflow-v2/a07-new-bamboo.webp", "alt": "新竹与晨雾，代表成长与自我", "size": "960x1600", "bytes": 212870, "sha256": "2A84554C92EC37F3025929A8C5D492E5D340B30F084C0FD6830F98396E495E04", "prompt": "New bamboo shoots in morning mist, restrained blue-green Chinese landscape" },
+    { "id": "A08", "path": "/daoflow-v2/a08-flowing-clouds.webp", "alt": "流云与山谷，代表无为与有为", "size": "960x1600", "bytes": 183186, "sha256": "89721EBE021C26DD26FAD964BBEA192B66D22360796E9C84EF02CE4C9378BD56", "prompt": "Slow clouds moving through a mountain valley in a Song blue-green landscape" },
+    { "id": "A09", "path": "/daoflow-v2/a09-paper-texture.webp", "alt": "浅米色宣纸肌理", "size": "768x768", "bytes": 22148, "sha256": "185B8DB2986C0931586F1AC65F90329DDDDDFEC19D1BF9025227AB2EDAA6AA6C", "prompt": "Seamless warm rice-paper texture, subtle handmade fibres, no text" },
+    { "id": "A10", "path": "/daoflow-v2/a10-seal-bookmark.webp", "alt": "朱砂印章式书签装饰", "size": "512x768", "bytes": 48132, "sha256": "CFB8B9F690F4A488478DB61C0733F4933154F4199FE7879D2E5931E866DBCDF6", "prompt": "Minimal cinnabar seal and bookmark motif, isolated with transparent background" },
+    { "id": "A11", "path": "/daoflow-v2/a11-distant-mountain-layer.webp", "alt": "远山透明视差层", "size": "1536x864", "bytes": 150564, "sha256": "8AB3CFC19FDB45FE2CDCC733C74DF0C15E20F3634CDAFC5ADAEE71638C7C1C17", "prompt": "Distant blue-green mountain ridge on a transparent background for parallax" },
+    { "id": "A12", "path": "/daoflow-v2/a12-foreground-pine-layer.webp", "alt": "近景松枝透明视差层", "size": "1536x864", "bytes": 216858, "sha256": "1C94BDEC50BB55FFA5BC43B3CDE534EFADF2E33CB6AD539A0276BCEF620EDE00", "prompt": "Foreground pine branches on a transparent background for parallax" },
+    { "id": "A13", "path": "/daoflow-v2/a13-mist-layer.webp", "alt": "薄雾透明视差层", "size": "1536x864", "bytes": 221876, "sha256": "FBCBB7D28E0757C45B4B44A96B27C45BBDA11C4EB9C2D4007A4A1A985B47D7CE", "prompt": "Soft mountain mist on a transparent background for parallax" }
+  ]
+}
