@@ -108,27 +108,32 @@ export async function callModel(
 
     return content
   } catch (error: unknown) {
-    const err = error as Record<string, unknown>
-    // 区分错误类型供上层降级调度
-    if (err instanceof FormatError) {
-      throw err
-    }
-
-    if (err?.status === 429) {
-      throw new RateLimitedError(`${provider} 速率限制 (429)`)
-    }
-
-    const errMsg = typeof err?.message === 'string' ? err.message : ''
-    if (
-      err?.code === 'ETIMEDOUT' ||
-      err?.code === 'ECONNABORTED' ||
-      errMsg.includes('timeout') ||
-      errMsg.includes('abort')
-    ) {
-      throw new TimeoutError(`${provider} 调用超时 (${timeout}ms)`)
-    }
-
-    // 其他错误原样抛出
-    throw new Error(`${provider} 调用失败: ${errMsg || String(err)}`)
+    throw normalizeModelFailure(error, provider, timeout)
   }
+}
+
+/**
+ * Normalize provider-library failures before the fallback layer persists a
+ * user-visible reason. OpenAI's timeout wording is "Request timed out.",
+ * which is distinct from the older "timeout" spelling and must not be
+ * presented as a generic outage.
+ */
+export function normalizeModelFailure(error: unknown, provider: Provider, timeout: number): Error {
+  if (error instanceof FormatError) return error
+
+  const err = error as Record<string, unknown>
+  if (err?.status === 429) return new RateLimitedError(`${provider} 速率限制 (429)`)
+
+  const errMsg = typeof err?.message === 'string' ? err.message : ''
+  const errName = typeof err?.name === 'string' ? err.name : ''
+  const errCode = typeof err?.code === 'string' ? err.code : ''
+  if (isTimeoutFailure(errMsg, errName, errCode)) return new TimeoutError(`${provider} 调用超时 (${timeout}ms)`)
+
+  return new Error(`${provider} 调用失败: ${errMsg || String(err)}`)
+}
+
+function isTimeoutFailure(message: string, name: string, code: string): boolean {
+  if (code === 'ETIMEDOUT' || code === 'ECONNABORTED' || code === 'UND_ERR_CONNECT_TIMEOUT') return true
+  if (/timeout/i.test(name)) return true
+  return /\btimeout\b|\btimed\s+out\b|\babort(?:ed|ing)?\b|\bdeadline\s+exceeded\b/i.test(message)
 }
