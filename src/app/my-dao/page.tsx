@@ -1,5 +1,5 @@
 'use client'
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, ArrowRight, ArrowClockwise, EnvelopeSimple, CaretDown, SignOut } from '@phosphor-icons/react'
@@ -7,6 +7,7 @@ import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
 import CloudBackground from '@/components/CloudBackground'
 import DaoLoading from '@/components/DaoLoading'
 import type { User } from '@supabase/supabase-js'
+import { authCallbackStatusMessage, clearDaoFlowSessionStorage, safeNext } from '@/lib/auth/safeNext'
 
 interface AskSession { id: string; question: string; ai_response: string; follow_up_question: string | null; created_at: string }
 export default function MyDaoPage() {
@@ -22,6 +23,15 @@ export default function MyDaoPage() {
   const [expanded, setExpanded] = useState<string | null>(null)
   const [attempt, setAttempt] = useState(0)
   const [signingOut, setSigningOut] = useState(false)
+  const [authNext, setAuthNext] = useState('/my-dao')
+  const authenticatedUserId = useRef<string | null>(null)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const callbackMessage = authCallbackStatusMessage(params.get('auth'))
+    if (callbackMessage) setError(callbackMessage)
+    if (params.has('next')) setAuthNext(safeNext(params.get('next')))
+  }, [])
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -31,8 +41,14 @@ export default function MyDaoPage() {
     }
     let active = true
     const timeout = setTimeout(() => { if (active) { setUser(null); setError('登录服务连接较慢，可稍后重试。') } }, 12000)
-    supabase.auth.getUser().then(({ data }) => { if (active) { setUser(data.user); clearTimeout(timeout) } }).catch(() => { if (active) { setUser(null); setError('暂时无法连接登录服务。'); clearTimeout(timeout) } })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { if (active) setUser(session?.user ?? null) })
+    supabase.auth.getUser().then(({ data }) => { if (active) { authenticatedUserId.current = data.user?.id ?? null; setUser(data.user); clearTimeout(timeout) } }).catch(() => { if (active) { authenticatedUserId.current = null; setUser(null); setError('暂时无法连接登录服务。'); clearTimeout(timeout) } })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) return
+      const previousUserId = authenticatedUserId.current
+      if (event === 'SIGNED_OUT' && previousUserId) clearDaoFlowSessionStorage(window.sessionStorage, previousUserId)
+      authenticatedUserId.current = session?.user?.id ?? null
+      setUser(session?.user ?? null)
+    })
     return () => { active = false; clearTimeout(timeout); subscription.unsubscribe() }
   }, [supabase])
 
@@ -61,17 +77,22 @@ export default function MyDaoPage() {
     setSending(true)
     setError('')
     try {
-      const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/my-dao` } })
+      const callback = new URL('/auth/callback', window.location.origin)
+      callback.searchParams.set('next', authNext)
+      const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: callback.toString() } })
       if (error) setError('登录链接未能发送，请稍后重试。')
       else setSent(true)
     } catch { setError('连接失败，请检查网络后重试。') }
     finally { setSending(false) }
   }
   async function signOut() {
+    const signingOutUserId = authenticatedUserId.current ?? user?.id ?? null
     setSigningOut(true)
     try {
       const { error } = await supabase.auth.signOut()
       if (error) throw error
+      if (signingOutUserId) clearDaoFlowSessionStorage(window.sessionStorage, signingOutUserId)
+      authenticatedUserId.current = null
       setUser(null); setSessions([]); setExpanded(null)
     } catch { setError('退出未成功，请再试一次。') }
     finally { setSigningOut(false) }

@@ -16,20 +16,31 @@ export async function GET(request: Request) {
   const next = safeNext(requestUrl.searchParams.get('next'))
 
   if (!isSupabaseConfigured) {
-    return NextResponse.redirect(new URL('/my-dao?auth=unavailable', requestUrl.origin))
+    return authFailureRedirect(requestUrl.origin, 'unavailable', next)
   }
 
   if (code) {
-    const supabase = createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (error) {
-      return NextResponse.redirect(new URL('/my-dao?auth=failed', requestUrl.origin))
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.exchangeCodeForSession(code)
+      if (error) {
+        return authFailureRedirect(requestUrl.origin, 'failed', next)
+      }
+    } catch {
+      return authFailureRedirect(requestUrl.origin, 'unavailable', next)
     }
   }
 
   if (!code) {
-    return NextResponse.redirect(new URL('/my-dao?auth=missing-code', requestUrl.origin))
+    return authFailureRedirect(requestUrl.origin, 'missing-code', next)
   }
 
   return NextResponse.redirect(new URL(next, requestUrl.origin))
+}
+
+function authFailureRedirect(origin: string, status: string, next: string) {
+  const destination = new URL('/my-dao', origin)
+  destination.searchParams.set('auth', status)
+  destination.searchParams.set('next', next)
+  return NextResponse.redirect(destination)
 }
