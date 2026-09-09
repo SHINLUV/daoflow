@@ -10,17 +10,23 @@ test('without private-service configuration, journal preserves the typed content
   await expect(page.getByLabel(/^正文/)).toHaveValue('断网或未配置时，这段内容不能消失。')
 })
 
-test.describe('authenticated journal lifecycle [BLOCKED: requires isolated local Supabase and two test users]', () => {
-  test.skip(process.env.DAOFLOW_E2E_AUTH !== '1', 'Set DAOFLOW_E2E_AUTH=1 only with isolated local Auth/DB fixtures; do not replace this with mocked login.')
+const liveAuthenticated = process.env.DAOFLOW_E2E_AUTH === '1'
+const ownerStorageState = process.env.DAOFLOW_E2E_STORAGE_STATE_A
+
+test.describe('authenticated journal lifecycle [requires isolated local Supabase fixture]', () => {
+  test.skip(!liveAuthenticated || !ownerStorageState, 'Set DAOFlow live-local flag and an authenticated owner storage-state path; do not replace this with mocked login.')
+  test.use({ storageState: ownerStorageState || { cookies: [], origins: [] } })
 
   test('save, refresh, edit, recycle, restore, and explicitly confirm permanent deletion', async ({ page }) => {
-    // Fixture setup supplies authenticated storage state. Assertions intentionally remain
-    // an acceptance checklist until real Auth/DB credentials are available.
-    await page.goto('/journal')
+    await page.goto('/journal/new')
+    await expect(page.getByLabel(/^正文/)).toBeEditable()
     await page.getByLabel(/^正文/).fill('一封虚构的验收心笺。')
     await page.getByRole('button', { name: '保存心笺' }).click()
     await expect(page.getByText('已保存。')).toBeVisible()
+    await expect(page).toHaveURL(/\/journal\/entries\/[0-9a-f-]{36}$/)
+    const entryUrl = page.url()
     await page.reload()
+    await expect(page.getByLabel(/^正文/)).toHaveValue('一封虚构的验收心笺。')
     await page.getByLabel(/^正文/).fill('一封经过编辑的虚构验收心笺。')
     await page.getByRole('button', { name: '保存修改' }).click()
     await page.getByRole('button', { name: '移入回收站' }).click()
@@ -28,5 +34,9 @@ test.describe('authenticated journal lifecycle [BLOCKED: requires isolated local
     await page.getByRole('button', { name: '移入回收站' }).click()
     page.once('dialog', dialog => dialog.accept())
     await page.getByRole('button', { name: '永久删除' }).click()
+    await expect(page).toHaveURL(/\/journal$/)
+    await page.goto(entryUrl)
+    await expect(page.getByText(/记录不存在|没有权限访问/)).toBeVisible()
+    await expect(page.getByRole('button', { name: '保存心笺' })).toHaveCount(0)
   })
 })

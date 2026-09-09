@@ -33,6 +33,16 @@ export function parseCursor(value: string | null) {
   if (!value) return null
   try { const row = JSON.parse(Buffer.from(value, 'base64url').toString('utf8')) as RecordValue; if (typeof row.createdAt !== 'string' || Number.isNaN(Date.parse(row.createdAt)) || !isJournalUuid(row.id) || (row.type !== undefined && row.type !== 'entry' && row.type !== 'ask')) throw new Error(); return { createdAt: row.createdAt, id: row.id as string, type: row.type as 'entry' | 'ask' | undefined } } catch { throw new JournalQueryError('cursor 无效。') }
 }
+export type JournalTimelineType = 'entry' | 'ask'
+export function cursorFilterForType(cursor: ReturnType<typeof parseCursor>, rowType: JournalTimelineType) {
+  if (!cursor) return null
+  const older = `created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`
+  // mergeTimeline sorts the final tie by type ascending: ask, then entry.
+  if (cursor.type === 'ask' && rowType === 'entry') {
+    return `${older},and(created_at.eq.${cursor.createdAt},id.eq.${cursor.id})`
+  }
+  return older
+}
 export function toVolume(row: RecordValue, entryCount = 0): Volume { return { id: String(row.id), title: String(row.title), archivedAt: row.archived_at === null ? null : String(row.archived_at), version: Number(row.version), entryCount, createdAt: String(row.created_at), updatedAt: String(row.updated_at) } }
 export function mergeTimeline(entries: Entry[], asks: Array<{ id: string; question: string; response: string; sourceEntryId: string | null; volumeId: string | null; createdAt: string }>, limit: number): Page<TimelineItem> {
   const all: TimelineItem[] = [...entries.map(entry => ({ type: 'entry' as const, createdAt: entry.createdAt, id: entry.id, entry })), ...asks.map(ask => ({ type: 'ask' as const, ...ask }))]

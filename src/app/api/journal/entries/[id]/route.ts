@@ -65,6 +65,14 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
   let version
   try { version = parsePurgeVersion(await request.json()) } catch (error) { return inputError(error, id) }
   const { error } = await auth.supabase.rpc('purge_entry', { p_id: validated.id, p_version: version })
-  if (error) return writeError(error, id)
+  if (error) {
+    const response = writeError(error, id)
+    if (response.status === 409 && error.message?.includes('CAS_CONFLICT')) {
+      const { data: current } = await auth.supabase.from('journal_entries').select('version').eq('id', validated.id).eq('user_id', auth.user.id).maybeSingle()
+      const body = await response.json() as ApiError
+      return NextResponse.json({ ...body, currentVersion: current?.version ?? null }, { status: 409 })
+    }
+    return response
+  }
   return NextResponse.json({ deleted: true })
 }

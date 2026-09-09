@@ -7,6 +7,29 @@ export const MAX_ENTRY_QUERY_LENGTH = 100
 
 type UnknownRecord = Record<string, unknown>
 
+export type PrivateDataToken = { ownerId: string | null; epoch: number }
+export class PrivateDataEpoch {
+  private ownerId: string | null = null
+  private epoch = 0
+
+  acceptOwner(ownerId: string | null) {
+    const changed = ownerId !== this.ownerId
+    if (changed) { this.ownerId = ownerId; this.epoch += 1 }
+    return changed
+  }
+
+  invalidate() { this.epoch += 1 }
+  capture(): PrivateDataToken { return { ownerId: this.ownerId, epoch: this.epoch } }
+  isCurrent(token: PrivateDataToken) { return token.ownerId !== null && token.ownerId === this.ownerId && token.epoch === this.epoch }
+}
+
+export class InputRevision {
+  private value = 0
+  capture() { return this.value }
+  bump() { this.value += 1; return this.value }
+  isCurrent(revision: number) { return revision === this.value }
+}
+
 export type ParsedCreateEntry = {
   id: string
   body: string
