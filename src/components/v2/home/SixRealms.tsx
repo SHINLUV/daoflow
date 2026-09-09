@@ -21,7 +21,7 @@ export function SixRealms({ onChooseQuestion }: { onChooseQuestion: (question: s
     <header className={styles.sectionHeading}><div><p className={styles.kicker}>六 境 · 由 心 入 道</p><h2 id="realm-title">每一种心境，都有回响。</h2></div><p>选一境，看一段原文，再把真正想问的事写下来。</p></header>
     <div className={styles.realmRail} role="tablist" aria-label="选择心境">
       {REALMS.map((item, index) => <button key={item.id} type="button" role="tab" aria-selected={active === index} className={active === index ? styles.realmActive : styles.realmCard} onClick={() => setActive(index)}>
-        <Image src={item.image} alt={`${item.title}的青绿山水`} fill sizes="(max-width: 760px) 72vw, 18vw" />
+        <Image src={item.image} alt={`${item.title}的青绿山水`} fill quality={45} sizes="(max-width: 760px) 68vw, 18vw" />
         <span className={styles.realmWash} /><span className={styles.realmWord}>{item.word}</span><strong>{item.title}</strong>
       </button>)}
     </div>

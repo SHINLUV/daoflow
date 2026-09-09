@@ -1,16 +1,8 @@
 import type { Metadata } from 'next'
-import localFont from 'next/font/local'
 import Footer from '@/components/Footer'
 import NavBar from '@/components/NavBar'
 import { MotionProvider } from '@/components/v2/motion/MotionProvider'
 import './globals.css'
-
-const notoSerif = localFont({
-  src: './fonts/DaoFlow-Serif.woff2',
-  weight: '300',
-  variable: '--font-serif',
-  display: 'swap',
-})
 
 export const metadata: Metadata = {
   title: 'DaoFlow · 问道',
@@ -33,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="zh-CN" className={notoSerif.variable}>
+    <html lang="zh-CN">
       <body>
         <MotionProvider>
           <NavBar />

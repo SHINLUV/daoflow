@@ -78,12 +78,12 @@ export function NowExperience({ onSaveDraft, onAsk, saveState, authState, sugges
 
   return <section className={styles.hero} aria-labelledby="now-title">
     <picture className={styles.heroImage}>
-      <source media="(max-width: 760px)" srcSet="/daoflow-v2/a02-mobile-hero.webp" />
-      <Image src="/daoflow-v2/a01-hero-landscape.webp" alt="" fill priority sizes="100vw" />
+      <source media="(max-width: 760px)" srcSet="/_next/image?url=%2Fdaoflow-v2%2Fa02-mobile-hero.webp&w=640&q=45" />
+      <Image src="/daoflow-v2/a01-hero-landscape.webp" alt="" fill priority quality={45} sizes="100vw" />
     </picture>
-    <Image className={styles.distantLayer} src="/daoflow-v2/a11-distant-mountain-layer.webp" alt="" fill sizes="100vw" />
-    <Image className={styles.pineLayer} src="/daoflow-v2/a12-foreground-pine-layer.webp" alt="" fill sizes="100vw" />
-    <Image className={styles.mistLayer} src="/daoflow-v2/a13-mist-layer.webp" alt="" fill sizes="100vw" />
+    <Image className={styles.distantLayer} src="/daoflow-v2/a11-distant-mountain-layer.webp" alt="" fill quality={40} sizes="100vw" />
+    <Image className={styles.pineLayer} src="/daoflow-v2/a12-foreground-pine-layer.webp" alt="" fill quality={40} sizes="100vw" />
+    <Image className={styles.mistLayer} src="/daoflow-v2/a13-mist-layer.webp" alt="" fill quality={40} sizes="100vw" />
     <Image className={styles.seal} src="/daoflow-v2/a10-seal-bookmark.webp" alt="" width={112} height={112} />
     <div className={styles.heroContent}>
       <p className={styles.kicker}>此 刻 · 私 人 卷 册</p>
