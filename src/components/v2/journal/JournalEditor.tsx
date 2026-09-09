@@ -6,7 +6,7 @@ import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
 import { PaperPanel } from '@/components/v2/shared/PaperPanel'
 import { PrimaryButton } from '@/components/v2/shared/PrimaryButton'
 import { StatusMessage } from '@/components/v2/shared/StatusMessage'
-import type { Entry, Mood } from '@/lib/journal/contracts'
+import type { Entry, Mood, Volume } from '@/lib/journal/contracts'
 import styles from './journal.module.css'
 
 const moods: Array<{ value: Mood; label: string }> = [
@@ -46,6 +46,7 @@ export function JournalEditor({ entryId }: { entryId?: string }) {
   const [loginEmail, setLoginEmail] = useState('')
   const [sendingLogin, setSendingLogin] = useState(false)
   const [openedLoginInAnotherTab, setOpenedLoginInAnotherTab] = useState(false)
+  const [volumes, setVolumes] = useState<Volume[]>([])
   const draftId = useRef(freshId()).current
 
   const signedDraftKey = useMemo(() => userId ? `daoflow:journal:draft:${userId}:${entryId ?? 'new'}` : null, [entryId, userId])
@@ -81,6 +82,11 @@ export function JournalEditor({ entryId }: { entryId?: string }) {
   }, [entryId, supabase, userId])
 
   useEffect(() => { void hydrateEntry() }, [hydrateEntry])
+
+  useEffect(() => {
+    if (!userId) return
+    fetch('/api/journal/volumes').then(response => response.ok ? response.json() : { items: [] }).then(data => setVolumes(data.items ?? [])).catch(() => setVolumes([]))
+  }, [userId])
 
   useEffect(() => {
     if (!signedDraftKey || !isDirty) return
@@ -191,7 +197,7 @@ export function JournalEditor({ entryId }: { entryId?: string }) {
         <p className={styles.counter}>{draft.body.trim().length}/10000</p>
         <details className={styles.more}><summary>更多选项</summary><div className={styles.moreFields}>
           <label>心情（可选）<select value={draft.mood} disabled={readOnly || loading} onChange={e => updateDraft({ mood: e.target.value as Mood | '' })}><option value="">不标记</option>{moods.map(mood => <option key={mood.value} value={mood.value}>{mood.label}</option>)}</select></label>
-          <label>所属卷册 ID（可选）<input value={draft.volumeId} disabled={readOnly || loading} onChange={e => updateDraft({ volumeId: e.target.value })} placeholder="可在卷册创建后填写" /></label>
+          <label>所属卷册（可选）<select value={draft.volumeId} disabled={readOnly || loading} onChange={e => updateDraft({ volumeId: e.target.value })}><option value="">暂不归卷</option>{volumes.filter(volume => !volume.archivedAt || volume.id === draft.volumeId).map(volume => <option key={volume.id} value={volume.id}>{volume.title}{volume.archivedAt ? '（已归档）' : ''}</option>)}</select></label>
         </div></details>
         {!readOnly && <PrimaryButton type="submit" disabled={saving || loading}>{saving ? '正在保存…' : entry ? '保存修改' : '保存心笺'}</PrimaryButton>}
       </form>
