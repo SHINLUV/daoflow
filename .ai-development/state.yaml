@@ -5,7 +5,7 @@ project:
   source_of_truth: ['docs/redesign-v2/01-PRD.md']
 current_stage: INDEPENDENT_ACCEPTANCE
 current_gate: independent_acceptance
-current_task: {id: 'FUNCTIONS', description: '真实本地功能、Auth/RLS 与 Agnes 已完成工程验证；等待未参与开发者在干净候选独立验收', owner: 'Independent acceptance', status: IN_PROGRESS}
+current_task: {id: 'FUNCTIONS', description: 'Round 2 独立验收以 PARTIAL 关闭；五项浏览器边界待由新的独立验收者补测，禁止由已有自测或 skipped 测试替代', owner: 'Independent acceptance', status: IN_PROGRESS}
 execution_status: ACTIVE
 starting_commit: f3aa69376edd11b0895c8e58fe58274012fa9a1f
 current_commit: 396be58
@@ -20,12 +20,12 @@ gate_status:
   development_entry: PASS
   implementation_complete: PASS
   engineering_verification: PASS
-  independent_acceptance: IN_PROGRESS
+  independent_acceptance: PARTIAL
   uat: NOT_EXECUTED
   pilot_readiness: NOT_EXECUTED
 readiness: {status: TECHNICAL_ACCEPTANCE_PENDING}
 blockers:
-  - '独立验收尚未完成；其结论不得由工程验证替代。'
+  - 'Round 2 独立验收为 PARTIAL：跨标签草稿/退出清理、受控 Agnes/保存失败与仅重试保存、超过20项混合分页、日期边界与5MB导出、完整键盘/reduce-motion/性能 trace 尚待新的独立验收实际执行。'
   - '真实用户业务UAT、生产部署和远程生产迁移均不在本轮范围。'
 artifacts:
   prd: {path: docs/redesign-v2/01-PRD.md, status: PASS}
@@ -36,6 +36,7 @@ artifacts:
   requirement_traceability: {path: docs/redesign-v2/06-TRACEABILITY.md, status: PASS}
   plan_review: {path: docs/redesign-v2/09-PLAN-REVIEW.md, status: PASS}
   acceptance_report: {path: docs/redesign-v2/reviews/round-1.md, status: PASS_WITH_EXTERNAL_BLOCKERS}
+  functions_round_2_acceptance: {path: docs/redesign-v2/reviews/round-2-independent-functions.md, status: PARTIAL}
 verification:
   acceptance_commit: 6315e69e3944bc1157bf7eb4e8c718acc516d89b
   unit: {status: PASS, evidence: [docs/redesign-v2/evidence/T08/6315e69/command-summary.md]}
@@ -43,12 +44,12 @@ verification:
   api: {status: PASS_WITH_EXTERNAL_BLOCKERS, evidence: [docs/redesign-v2/evidence/T08/6315e69/command-summary.md]}
   e2e: {status: PASS_WITH_EXTERNAL_BLOCKERS, evidence: [docs/redesign-v2/evidence/T08/6315e69/command-summary.md]}
   runtime: {status: PASS, evidence: [docs/redesign-v2/evidence/T08/6315e69/command-summary.md]}
-  independent_acceptance: {status: PASS_WITH_EXTERNAL_BLOCKERS, evidence: [docs/redesign-v2/reviews/round-1.md, docs/redesign-v2/evidence/T09/6315e69]}
+  independent_acceptance: {status: PARTIAL, evidence: [docs/redesign-v2/reviews/round-1.md, docs/redesign-v2/reviews/round-2-independent-functions.md, docs/redesign-v2/evidence/FUNCTIONS/RUNTIME-VERIFICATION.md]}
   uat: {status: NOT_EXECUTED, evidence: []}
 independent_review:
-  status: PASS_WITH_EXTERNAL_BLOCKERS
-  report: docs/redesign-v2/reviews/round-1.md
-  note: 'V 已独立实际操作生产预览、审阅桌面/手机/动效证据并复验 R1/R2；真实私密服务路径仍被环境前置阻断。'
+  status: PARTIAL
+  report: docs/redesign-v2/reviews/round-2-independent-functions.md
+  note: '新的独立验收者已真实复验本地 Auth/JWT/RLS/Agnes 与浏览器核心闭环；五项浏览器边界未执行，未升格为 PASS。'
 visual_polish:
   status: PASS
   candidate: 0a96cbf4ce98c2116ab8812495ce93f0a21bb0fa
@@ -70,3 +71,4 @@ history:
   - {event: T01_SHARED_SHELL, result: PASS, commit: a14f8416e710747c3d64bb9430be1eb997fdf3c9, evidence: docs/redesign-v2/evidence/T01/a14f8416e710747c3d64bb9430be1eb997fdf3c9/command-summary.md, note: '共享类型、导航、认证回调路径校验和缺配置公共页降级已完成；完整产品工程验证尚未开始'}
   - {event: T02_TO_T08_IMPLEMENTATION, result: PASS_WITH_EXTERNAL_BLOCKERS, commit: 6315e69e3944bc1157bf7eb4e8c718acc516d89b, evidence: docs/redesign-v2/evidence/T08/6315e69/command-summary.md, note: '美术、首页、心笺、卷册、经典收藏、批注、搜索、导出、记录转问道与动效已集成；工程回归与性能通过。真实 Supabase/Auth/RLS/RPC/双账户路径保持 BLOCKED。'}
   - {event: T09_INDEPENDENT_ACCEPTANCE_R1, result: PASS_WITH_EXTERNAL_BLOCKERS, reviewer: V, candidate: 6315e69e3944bc1157bf7eb4e8c718acc516d89b, report: docs/redesign-v2/reviews/round-1.md, note: '真实生产浏览器、桌面/手机视觉、动效帧及移动 Lighthouse 已独立复核；R1/R2 FAIL 已关闭，私密服务和业务UAT未外推。'}
+  - {event: FUNCTIONS_INDEPENDENT_ACCEPTANCE_R2, result: PARTIAL, reviewer: independent_function_acceptance, candidate: a933f6d14afdde99fbf17a530c1ddb1ceb8f2d61, report: docs/redesign-v2/reviews/round-2-independent-functions.md, note: '真实本地核心功能和安全闭环通过；五项未执行浏览器边界保留为门禁，禁止以工程自证替代。'}
