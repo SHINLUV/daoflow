@@ -25,7 +25,7 @@ export default function HomePage() {
   const [supabase] = useState(() => createClient())
   const [authState, setAuthState] = useState<AuthState>(isSupabaseConfigured ? 'loading' : 'unavailable')
   const [saveState, setSaveState] = useState<SaveState>('idle')
-  const [suggestedQuestion, setSuggestedQuestion] = useState<string | null>(null)
+  const [suggestion, setSuggestion] = useState<{ question: string; revision: number }>({ question: '', revision: 0 })
   const [lastVolume, setLastVolume] = useState<LastVolume>(null)
   const { navigate } = useDaoNavigation()
   const savedTimer = useRef<number | null>(null)
@@ -78,8 +78,8 @@ export default function HomePage() {
 
   return <main id="main-content">
     {lastVolume && <aside className={styles.returnStrip} aria-label="继续上次打开的卷册"><span>上次翻到</span><Link href={`/journal/volumes/${lastVolume.id}`}>{lastVolume.title}<ArrowUpRight size={15} /></Link></aside>}
-    <NowExperience onSaveDraft={saveDraft} onAsk={ask} saveState={saveState} authState={authState} suggestedQuestion={suggestedQuestion} />
-    <SixRealms onChooseQuestion={question => setSuggestedQuestion(question)} />
+    <NowExperience onSaveDraft={saveDraft} onAsk={ask} saveState={saveState} authState={authState} suggestedQuestion={suggestion.question} suggestionRevision={suggestion.revision} />
+    <SixRealms onChooseQuestion={question => setSuggestion(previous => ({ question, revision: previous.revision + 1 }))} />
     <DailyReading />
   </main>
 }

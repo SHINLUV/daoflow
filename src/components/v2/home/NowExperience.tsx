@@ -18,6 +18,7 @@ export type NowExperienceProps = {
   saveState: SaveState
   authState: AuthState
   suggestedQuestion?: string | null
+  suggestionRevision?: number
 }
 
 function newEntryId() {
@@ -26,7 +27,7 @@ function newEntryId() {
     : `entry-${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
 
-export function NowExperience({ onSaveDraft, onAsk, saveState, authState, suggestedQuestion }: NowExperienceProps) {
+export function NowExperience({ onSaveDraft, onAsk, saveState, authState, suggestedQuestion, suggestionRevision }: NowExperienceProps) {
   const [mode, setMode] = useState<EntryMode>('record')
   const [recordDraft, setRecordDraft] = useState('')
   const [askDraft, setAskDraft] = useState('')
@@ -71,7 +72,7 @@ export function NowExperience({ onSaveDraft, onAsk, saveState, authState, sugges
     setMode('ask')
     if (askDraftRef.current.trim()) setReplacePending(suggestedQuestion)
     else { askDraftRef.current = suggestedQuestion; setAskDraft(suggestedQuestion) }
-  }, [suggestedQuestion])
+  }, [suggestedQuestion, suggestionRevision])
 
   function chooseMode(next: EntryMode) {
     setMode(next)
