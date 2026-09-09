@@ -3,9 +3,9 @@ project:
   name: DaoFlow V2
   root: 'D:\DAOFLOW'
   source_of_truth: ['docs/redesign-v2/01-PRD.md']
-current_stage: ENGINEERING_VERIFICATION
-current_gate: independent_acceptance
-current_task: {id: 'T09', description: '候选版本的独立浏览器、视觉与功能验收', owner: 'V', status: READY}
+current_stage: ACCEPTANCE_COMPLETE_WITH_BLOCKERS
+current_gate: external_environment
+current_task: {id: 'T09', description: '独立浏览器、视觉与功能验收已完成；外部私密服务验收待条件', owner: 'V', status: PASS_WITH_EXTERNAL_BLOCKERS}
 starting_commit: f3aa69376edd11b0895c8e58fe58274012fa9a1f
 current_commit: 6315e69e3944bc1157bf7eb4e8c718acc516d89b
 last_verified_commit: 6315e69e3944bc1157bf7eb4e8c718acc516d89b
@@ -19,7 +19,7 @@ gate_status:
   development_entry: PASS
   implementation_complete: PASS_WITH_EXTERNAL_BLOCKERS
   engineering_verification: PASS_WITH_EXTERNAL_BLOCKERS
-  independent_acceptance: NOT_EXECUTED
+  independent_acceptance: PASS_WITH_EXTERNAL_BLOCKERS
   uat: NOT_EXECUTED
   pilot_readiness: NOT_EXECUTED
 readiness: {status: NOT_READY}
@@ -34,7 +34,7 @@ artifacts:
   implementation_plan: {path: docs/redesign-v2/05-IMPLEMENTATION-PLAN.md, status: PASS}
   requirement_traceability: {path: docs/redesign-v2/06-TRACEABILITY.md, status: PASS}
   plan_review: {path: docs/redesign-v2/09-PLAN-REVIEW.md, status: PASS}
-  acceptance_report: {path: docs/redesign-v2/reviews/round-1.md, status: NOT_EXECUTED}
+  acceptance_report: {path: docs/redesign-v2/reviews/round-1.md, status: PASS_WITH_EXTERNAL_BLOCKERS}
 verification:
   acceptance_commit: 6315e69e3944bc1157bf7eb4e8c718acc516d89b
   unit: {status: PASS, evidence: [docs/redesign-v2/evidence/T08/6315e69/command-summary.md]}
@@ -42,11 +42,12 @@ verification:
   api: {status: PASS_WITH_EXTERNAL_BLOCKERS, evidence: [docs/redesign-v2/evidence/T08/6315e69/command-summary.md]}
   e2e: {status: PASS_WITH_EXTERNAL_BLOCKERS, evidence: [docs/redesign-v2/evidence/T08/6315e69/command-summary.md]}
   runtime: {status: PASS, evidence: [docs/redesign-v2/evidence/T08/6315e69/command-summary.md]}
+  independent_acceptance: {status: PASS_WITH_EXTERNAL_BLOCKERS, evidence: [docs/redesign-v2/reviews/round-1.md, docs/redesign-v2/evidence/T09/6315e69]}
   uat: {status: NOT_EXECUTED, evidence: []}
 independent_review:
-  status: READY
+  status: PASS_WITH_EXTERNAL_BLOCKERS
   report: docs/redesign-v2/reviews/round-1.md
-  note: '候选版本已完成工程验证；V 必须独立执行浏览器、视觉和协议逐项验收。'
+  note: 'V 已独立实际操作生产预览、审阅桌面/手机/动效证据并复验 R1/R2；真实私密服务路径仍被环境前置阻断。'
 history:
   - {event: PRD_REVIEW, result: PASS, report: docs/redesign-v2/02-PRD-REVIEW.md}
   - {event: SPEC_REVIEW_R1, result: FAIL, report: docs/redesign-v2/04-SPEC-REVIEW.md}
@@ -56,3 +57,4 @@ history:
   - {event: T00_HANDOFF_CHECK, result: PASS, note: 'HEAD和有效审查hash已核对；环境与继承基线结果见docs/redesign-v2/DECISIONS.md；本地真实Supabase仍未建立'}
   - {event: T01_SHARED_SHELL, result: PASS, commit: a14f8416e710747c3d64bb9430be1eb997fdf3c9, evidence: docs/redesign-v2/evidence/T01/a14f8416e710747c3d64bb9430be1eb997fdf3c9/command-summary.md, note: '共享类型、导航、认证回调路径校验和缺配置公共页降级已完成；完整产品工程验证尚未开始'}
   - {event: T02_TO_T08_IMPLEMENTATION, result: PASS_WITH_EXTERNAL_BLOCKERS, commit: 6315e69e3944bc1157bf7eb4e8c718acc516d89b, evidence: docs/redesign-v2/evidence/T08/6315e69/command-summary.md, note: '美术、首页、心笺、卷册、经典收藏、批注、搜索、导出、记录转问道与动效已集成；工程回归与性能通过。真实 Supabase/Auth/RLS/RPC/双账户路径保持 BLOCKED。'}
+  - {event: T09_INDEPENDENT_ACCEPTANCE_R1, result: PASS_WITH_EXTERNAL_BLOCKERS, reviewer: V, candidate: 6315e69e3944bc1157bf7eb4e8c718acc516d89b, report: docs/redesign-v2/reviews/round-1.md, note: '真实生产浏览器、桌面/手机视觉、动效帧及移动 Lighthouse 已独立复核；R1/R2 FAIL 已关闭，私密服务和业务UAT未外推。'}
