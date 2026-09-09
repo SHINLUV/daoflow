@@ -7,6 +7,13 @@ import { toSnapshot } from '@/lib/journal/ask-requests'
 // Keep the service-role key and every privileged RPC call on the server graph.
 void headers
 
+class AskRequestRpcError extends Error {
+  constructor(message: string, readonly code?: string, details?: string | null) {
+    super([message, code, details].filter(Boolean).join(' '))
+    this.name = 'AskRequestRpcError'
+  }
+}
+
 export function hasAskServiceConfiguration(): boolean {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
 }
@@ -28,7 +35,7 @@ export async function claimAskRequest(userId: string, input: Required<AskRequest
     p_source_entry_id: input.sourceEntryId,
     p_volume_id: input.volumeId,
   })
-  if (error) throw new Error(error.message)
+  if (error) throw new AskRequestRpcError(error.message, error.code, error.details)
   return (data?.[0] ?? null) as ClaimedAskRequest | null
 }
 
@@ -42,7 +49,7 @@ export async function completeAskRequest(userId: string, claimed: ClaimedAskRequ
     p_generation: claimed.generation,
     p_result: toSnapshot(result),
   })
-  if (error) throw new Error(error.message)
+  if (error) throw new AskRequestRpcError(error.message, error.code, error.details)
   return data as { state: string; result_json: AskResultSnapshot | null; session_id: string | null } | null
 }
 
@@ -50,6 +57,6 @@ export async function saveAskResult(userId: string, requestId: string) {
   const client = service()
   if (!client) return null
   const { data, error } = await client.rpc('save_ask_result', { p_user_id: userId, p_request_id: requestId })
-  if (error) throw new Error(error.message)
+  if (error) throw new AskRequestRpcError(error.message, error.code, error.details)
   return data as { state: string; result_json: AskResultSnapshot | null; session_id: string | null } | null
 }

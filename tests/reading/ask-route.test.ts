@@ -50,6 +50,15 @@ describe('ask route claim boundary', () => {
     expect(askDaoMock).not.toHaveBeenCalled()
   })
 
+  it('maps an owned-link RPC P0002 to a non-disclosing 404 without calling a model', async () => {
+    claimMock.mockRejectedValue(Object.assign(new Error('database exception'), { code: 'P0002' }))
+    const response = await POST(request({ question: '问题', requestId: '753e0f9c-0d47-4c98-9667-f9466d16ec0b', sourceEntryId: '69b4a169-8b2a-4744-8cec-c705d50f75dc' }))
+
+    expect(response.status).toBe(404)
+    expect((await response.json()).error.code).toBe('NOT_FOUND')
+    expect(askDaoMock).not.toHaveBeenCalled()
+  })
+
   it('does not call a model for a linked request when ownership infrastructure is unavailable', async () => {
     configured.value = false
     const response = await POST(request({ question: '问题', sourceEntryId: '69b4a169-8b2a-4744-8cec-c705d50f75dc' }))

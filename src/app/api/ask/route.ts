@@ -64,7 +64,8 @@ export async function POST(request: NextRequest) {
     claimed = await claimAskRequest(user.id, { ...input, requestId: persistenceRequestId })
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : ''
-    if (message.includes('SOURCE_NOT_FOUND') || message.includes('VOLUME_NOT_FOUND')) return error(404, 'NOT_FOUND', '来源记录或卷册不存在，或你没有权限访问。', persistenceRequestId)
+    const rpcCode = cause && typeof cause === 'object' && 'code' in cause && typeof cause.code === 'string' ? cause.code : null
+    if (message.includes('SOURCE_NOT_FOUND') || message.includes('VOLUME_NOT_FOUND') || rpcCode === 'P0002') return error(404, 'NOT_FOUND', '来源记录或卷册不存在，或你没有权限访问。', persistenceRequestId)
     if (message.includes('IDEMPOTENCY_CONFLICT')) return error(409, 'IDEMPOTENCY_CONFLICT', '该 requestId 已用于不同的问题或关联。', persistenceRequestId)
     // A lost RPC response may mean the claim committed. Never call a model until
     // ownership of the current claim is positively established.
