@@ -85,6 +85,7 @@ const lines = [
   `SMTP_USER=${smtpUser}`,
   `SMTP_PASS=${smtpPass}`,
   'SMTP_SENDER_NAME=DaoFlow',
+  'MAILER_EXTERNAL_HOSTS=dao.shinluv.cloud,tanfeng.shinluv.cloud',
   `AGNES_API_KEY=${agnesKey}`,
   'AGNES_BASE_URL=https://apihub.agnes-ai.com/v1',
   `DEEPSEEK_API_KEY=${process.env.DAOFLOW_DEEPSEEK_API_KEY ?? ''}`,
