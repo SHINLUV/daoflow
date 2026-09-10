@@ -18,12 +18,12 @@ current_task:
     id: "AUTH_HALL_RAG_DELTA",
     description: "实现新增私人账户、同道大厅、可信经典 RAG、Agnes answer_v2 与问道输入框；旧技术验收不覆盖该增量",
     owner: "Delivery controller",
-    status: LOCAL_IMPLEMENTED_EXTERNAL_RUNTIME_BLOCKED,
+    status: REMEDIATED_REACCEPTANCE_AND_EXTERNAL_RUNTIME_REQUIRED,
   }
 execution_status: AUTH_HALL_RAG_ENGINEERING_VERIFICATION
 starting_commit: f3aa69376edd11b0895c8e58fe58274012fa9a1f
-current_commit: 615c53b563fc74699909b94eceebadf218ebbb0c
-last_verified_commit: 615c53b563fc74699909b94eceebadf218ebbb0c
+current_commit: f4d0a4a3697ec1ebf3603f2796e4bcebd2cec0bc
+last_verified_commit: f4d0a4a3697ec1ebf3603f2796e4bcebd2cec0bc
 gate_status:
   prd_complete: PASS
   prd_review: PASS
@@ -80,6 +80,11 @@ artifacts:
     {
       path: docs/redesign-v2/evidence/AH-P0/615c53b/engineering-verification.md,
       status: BLOCKED_EXTERNAL_RUNTIME,
+    }
+  auth_hall_rag_remediation_verification:
+    {
+      path: docs/redesign-v2/evidence/AH-P0/f4d0a4a/remediation-verification.md,
+      status: PASS_LOCAL_REMEDIATION_REACCEPTANCE_REQUIRED,
     }
   dao_corpus_manifest:
     {
@@ -162,9 +167,9 @@ verification:
   independent_acceptance: { status: NOT_EXECUTED, evidence: [] }
   uat: { status: NOT_EXECUTED, evidence: [] }
 independent_review:
-  status: NOT_EXECUTED
-  report: null
-  note: "历史 Functions 独立验收仅覆盖旧候选；615c53b 的 Auth/Hall/RAG 增量须由新的未参与开发者独立验收。"
+  status: FAIL_PRESERVED_REACCEPTANCE_REQUIRED
+  report: docs/redesign-v2/reviews/ah-p0-independent-acceptance.md
+  note: "615c53b 的独立验收 FAIL 已保留；f4d0a4a 修复 IA-01 至 IA-04 后，仍须由另一名未参与前次验收者重新验收。"
 visual_polish:
   status: PASS
   candidate: 0a96cbf4ce98c2116ab8812495ce93f0a21bb0fa
@@ -174,6 +179,21 @@ visual_polish:
   visual_score: 92
   note: "本轮限定展示范围通过，不替代上述T09全产品验收记录；真实服务BLOCKED和BUSINESS_UAT_PENDING保持。"
 history:
+  - {
+      event: AUTH_HALL_RAG_REMEDIATION_R1,
+      result: PASS_LOCAL_REMEDIATION_REACCEPTANCE_REQUIRED,
+      candidate: f4d0a4a3697ec1ebf3603f2796e4bcebd2cec0bc,
+      evidence: docs/redesign-v2/evidence/AH-P0/f4d0a4a/remediation-verification.md,
+      note: "015 前向修复匿名限流授权，备用 MFA、输入框尺寸和 complete Suspense 本地复核通过；外部运行时和新独立验收仍 BLOCKED。",
+    }
+  - {
+      event: AUTH_HALL_RAG_INDEPENDENT_ACCEPTANCE_R1,
+      result: FAIL,
+      reviewer: ah_p0_independent_acceptance,
+      candidate: 615c53b563fc74699909b94eceebadf218ebbb0c,
+      report: docs/redesign-v2/reviews/ah-p0-independent-acceptance.md,
+      note: "IA-01 匿名限流授权、IA-02 MFA 恢复、IA-03 输入框高度、IA-04 complete Suspense 原始 FAIL 已保留并进入修复/复验。",
+    }
   - {
       event: AUTH_HALL_RAG_IMPLEMENTATION,
       result: PASS,
