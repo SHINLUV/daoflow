@@ -1,0 +1,213 @@
+services:
+  db:
+    image: public.ecr.aws/supabase/postgres:17.6.1.167
+    restart: unless-stopped
+    env_file: stack.env
+    environment:
+      POSTGRES_HOST: /var/run/postgresql
+      PGPORT: 5432
+      POSTGRES_PORT: 5432
+      PGDATABASE: postgres
+      POSTGRES_DB: postgres
+      PGDATA: /var/lib/postgresql/data
+    command:
+      - postgres
+      - -c
+      - config_file=/etc/postgresql/postgresql.conf
+      - -c
+      - log_min_messages=warning
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "127.0.0.1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - postgres-config:/etc/postgresql-custom
+      - ${SUPABASE_VENDOR_DIR:?Set SUPABASE_VENDOR_DIR}/docker/volumes/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql:ro
+      - ${SUPABASE_VENDOR_DIR:?Set SUPABASE_VENDOR_DIR}/docker/volumes/db/webhooks.sql:/docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql:ro
+      - ${SUPABASE_VENDOR_DIR:?Set SUPABASE_VENDOR_DIR}/docker/volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:ro
+      - ${SUPABASE_VENDOR_DIR:?Set SUPABASE_VENDOR_DIR}/docker/volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:ro
+      - ${SUPABASE_VENDOR_DIR:?Set SUPABASE_VENDOR_DIR}/docker/volumes/db/_supabase.sql:/docker-entrypoint-initdb.d/migrations/97-_supabase.sql:ro
+      - ${SUPABASE_VENDOR_DIR:?Set SUPABASE_VENDOR_DIR}/docker/volumes/db/logs.sql:/docker-entrypoint-initdb.d/migrations/99-logs.sql:ro
+      - ${SUPABASE_VENDOR_DIR:?Set SUPABASE_VENDOR_DIR}/docker/volumes/db/pooler.sql:/docker-entrypoint-initdb.d/migrations/99-pooler.sql:ro
+    shm_size: 128mb
+    mem_limit: 768m
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - internal
+
+  auth:
+    image: supabase/gotrue:v2.196.0
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: stack.env
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_SITE_URL: ${SITE_URL}
+      GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS}
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_ISSUER: ${API_EXTERNAL_URL}
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: "false"
+      GOTRUE_MAILER_AUTOCONFIRM: "false"
+      GOTRUE_SMTP_ADMIN_EMAIL: ${SMTP_ADMIN_EMAIL}
+      GOTRUE_SMTP_HOST: ${SMTP_HOST}
+      GOTRUE_SMTP_PORT: ${SMTP_PORT}
+      GOTRUE_SMTP_USER: ${SMTP_USER}
+      GOTRUE_SMTP_PASS: ${SMTP_PASS}
+      GOTRUE_SMTP_SENDER_NAME: ${SMTP_SENDER_NAME}
+      GOTRUE_SMTP_MAX_FREQUENCY: 60s
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:9999/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    mem_limit: 128m
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - internal
+
+  rest:
+    image: postgrest/postgrest:v14.17
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: stack.env
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public,storage,graphql_public
+      PGRST_DB_EXTRA_SEARCH_PATH: public,extensions
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_ADMIN_SERVER_PORT: 3001
+      PGRST_ADMIN_SERVER_HOST: 127.0.0.1
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_MAX_ROWS: 1000
+    healthcheck:
+      test: ["CMD", "postgrest", "--ready"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    mem_limit: 192m
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - internal
+
+  api:
+    image: envoyproxy/envoy:v1.39.1
+    restart: unless-stopped
+    depends_on:
+      auth:
+        condition: service_healthy
+      rest:
+        condition: service_healthy
+    env_file: stack.env
+    environment:
+      SUPABASE_PUBLIC_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
+    entrypoint: ["/bin/sh", "/docker-entrypoint.sh"]
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/127.0.0.1/8000'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ${SUPABASE_VENDOR_DIR:?Set SUPABASE_VENDOR_DIR}/docker/volumes/api/envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ${SUPABASE_VENDOR_DIR:?Set SUPABASE_VENDOR_DIR}/docker/volumes/api/envoy/cds.yaml:/etc/envoy/cds.yaml:ro
+      - ${SUPABASE_VENDOR_DIR:?Set SUPABASE_VENDOR_DIR}/docker/volumes/api/envoy/lds.template.yaml:/etc/envoy/lds.template.yaml:ro
+      - ${SUPABASE_VENDOR_DIR:?Set SUPABASE_VENDOR_DIR}/docker/volumes/api/envoy/docker-entrypoint.sh:/docker-entrypoint.sh:ro
+    ports:
+      - "127.0.0.1:${DAOFLOW_API_PORT:-18084}:8000"
+    mem_limit: 256m
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      internal: {}
+      ingress:
+        aliases:
+          - daoflow-api
+
+  migrate:
+    image: public.ecr.aws/supabase/postgres:17.6.1.167
+    profiles: ["tools"]
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: stack.env
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: postgres
+      PGUSER: supabase_admin
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ../../supabase/migrations:/migrations:ro
+      - ./apply-migrations.sh:/apply-migrations.sh:ro
+    entrypoint: ["/bin/bash", "/apply-migrations.sh"]
+    networks:
+      - internal
+
+  app:
+    image: "daoflow:${DAOFLOW_IMAGE_TAG:?Set DAOFLOW_IMAGE_TAG}"
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file: stack.env
+    environment:
+      DAOFLOW_RELEASE: ${DAOFLOW_IMAGE_TAG}
+      SUPABASE_INTERNAL_URL: http://api:8000
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    ports:
+      - "127.0.0.1:${DAOFLOW_APP_PORT:-18083}:3000"
+    init: true
+    mem_limit: 512m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      internal: {}
+      ingress:
+        aliases:
+          - daoflow-app
+
+networks:
+  internal:
+    internal: true
+    ipam:
+      config:
+        - subnet: 10.250.42.0/24
+  ingress:
+    external: true
+    name: quotation-prod-net
+
+volumes:
+  postgres-data:
+  postgres-config:

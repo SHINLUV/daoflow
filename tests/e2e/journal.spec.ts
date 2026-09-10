@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 test('without private-service configuration, journal preserves the typed content and clearly reports unavailability', async ({ page }) => {
+  test.skip(process.env.DAOFLOW_E2E_DATABASE_CONFIGURED === '1', 'This failure-state test requires an intentionally unconfigured database.')
   await page.goto('/journal')
   await page.getByRole('link', { name: '新建心笺' }).click()
   await expect(page).toHaveURL(/\/journal\/new$/)

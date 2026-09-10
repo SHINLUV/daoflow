@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { getSupabaseCookieName } from './storage-key'
 
 /**
  * Supabase 服务端客户端（App Router）
@@ -13,9 +14,10 @@ export function createClient() {
   const cookieStore = cookies()
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://supabase-not-configured.invalid',
+    process.env.SUPABASE_INTERNAL_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://supabase-not-configured.invalid',
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'public-anon-key-not-configured',
     {
+      cookieOptions: { name: getSupabaseCookieName(process.env.NEXT_PUBLIC_SUPABASE_URL) },
       cookies: {
         getAll() {
           return cookieStore.getAll()

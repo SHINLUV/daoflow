@@ -1,0 +1,30 @@
+dao.shinluv.cloud {
+    encode zstd gzip
+
+    request_body {
+        max_size 1MB
+    }
+
+    @private path /.env /.git/* /Dockerfile /package.json /package-lock.json /ops/*
+    respond @private 404
+
+    header {
+        -Server
+        X-Content-Type-Options nosniff
+        X-Frame-Options SAMEORIGIN
+        Referrer-Policy strict-origin-when-cross-origin
+        Strict-Transport-Security "max-age=15552000"
+        Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()"
+    }
+
+    @supabase path /auth/v1/* /rest/v1/*
+    handle @supabase {
+        reverse_proxy daoflow-api:8000
+    }
+
+    handle {
+        reverse_proxy daoflow-app:3000 {
+            header_up X-Real-IP {remote_host}
+        }
+    }
+}

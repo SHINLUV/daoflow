@@ -8,7 +8,7 @@ const askEnabled = process.env.DAOFLOW_E2E_ASK === '1' && Boolean(storageState &
 test('anonymous FavoriteControls leaves its initial loading state with a clear outcome', async ({ page }) => {
   await page.goto('/chapters/8')
   await expect(page.getByText('正在读取我的收藏…')).toHaveCount(0, { timeout: 10_000 })
-  await expect(page.getByText(/请先登录后管理收藏与批注|收藏需要数据库配置|收藏服务暂不可用|尚未收藏本章原文/)).toBeVisible()
+  await expect(page.getByText(/请先登录后管理收藏与批注|收藏需要数据库配置|收藏服务暂不可用|尚未收藏本章原文/).first()).toBeVisible()
 })
 
 test('anonymous ask consumes an in-tab draft without leaking it into the URL', async ({ page }) => {
