@@ -1,8 +1,8 @@
 # AH-P0 独立技术验收（最终候选）
 
-日期：2026-09-11（Asia/Shanghai）  
-验收者：`/root/ah_p0_independent_acceptance`（本任务在此前 A/B/C 开发和总控实现完成后新建；未修改产品代码、迁移、测试或运行配置）  
-绑定产品候选：`615c53b563fc74699909b94eceebadf218ebbb0c`  
+日期：2026-09-11（Asia/Shanghai）
+验收者：`/root/ah_p0_independent_acceptance`（本任务在此前 A/B/C 开发和总控实现完成后新建；未修改产品代码、迁移、测试或运行配置）
+绑定产品候选：`615c53b563fc74699909b94eceebadf218ebbb0c`
 验收记录提交：`498150bb516ba20a78a2d984cfd077d281b2375b`
 
 ## 结论

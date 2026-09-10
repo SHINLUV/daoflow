@@ -16,7 +16,7 @@
 | `POST /api/auth/password/sign-up` | `{email,password,redirectPath}`；一律 `202` | Auth 管理密码；最少 12 字符、允许长密码/密码管理器；确认邮箱后才视为可发布 |
 | `POST /api/auth/password/sign-in` | `{email,password}`；成功 `204` | 不枚举账户；渐进限流；服务器设置会话 cookie |
 | `POST /api/auth/password/recovery` / `POST /api/auth/password/reset` | 前者 `{email,redirectPath}`，后者 `{password}` | 前者统一 `202`；后者需受 Auth recovery 会话和近期验证；不得用 email 字符串重置 |
-| `POST /api/auth/mfa/enroll` / `challenge` / `verify` / `unenroll` | 只接受各流程必要的 factor/challenge/验证码字段 | 当前用户会话、Origin+CSRF；移除因子需 AAL2 与 15 分钟内 AMR 时间；用户没有可恢复因子时不得删除最后一个因子 |
+| `POST /api/auth/mfa/enroll` / `challenge` / `verify` / `unenroll` | 只接受各流程必要的 factor/challenge/验证码字段 | 当前用户会话、Origin+CSRF；移除因子需 AAL2 与 15 分钟内 AMR 时间；已验证的备用 TOTP 是可恢复因子，唯一已验证因子不得删除，且没有邮箱绕过 |
 | `POST /api/auth/sign-out` / `sign-out-all` | 无 body | 当前用户、Origin+CSRF；先撤销 Auth session，再清除所有 app 私密缓存广播标记 |
 
 Auth callback 使用服务端 PKCE `code` 交换，仅接受状态绑定的 callback，拒绝 `//`、反斜线、协议和双重编码绕过。成功或失败都不把 token 放入 URL。公共业务 API 也不接受客户端传来的 `userId`、`owner`、role、provider、model、systemPrompt、messages、baseURL、visibility、审核状态或响应快照。

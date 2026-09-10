@@ -86,8 +86,8 @@ export default function SecurityPage() {
     </section>
     <section aria-labelledby="mfa-heading" style={{ marginTop: 24 }}>
       <h2 id="mfa-heading">双重验证</h2>
-      <p>启用 TOTP 后，审核等敏感权限还会要求 AAL2 和近期验证。</p>
-      {factors.length === 0 && !enrollment && <button className="dao-primary" type="button" onClick={beginEnrollment} disabled={busy}>启用验证器</button>}
+      <p>启用 TOTP 后，审核等敏感权限还会要求 AAL2 和近期验证。请在另一台设备或另一款验证器中启用并验证备用因子；失去所有因子时不会凭邮箱字符串绕过 MFA。</p>
+      {!enrollment && <button className="dao-primary" type="button" onClick={beginEnrollment} disabled={busy}>{factors.length === 0 ? '启用验证器' : '添加备用验证器'}</button>}
       {enrollment && <div className="dao-error" style={{ marginTop: 16 }}>
         <p>仅在你的设备上扫描此二维码；不要截图或转发。</p>
         {/* The enrollment secret is a short-lived data URI and must not be sent to an image optimizer. */}

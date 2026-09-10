@@ -3,6 +3,7 @@ import { createAuthBff, hasRecentMfa, isAuthConfigured } from '@/lib/auth/bff'
 import { readStrictObject, readString } from '@/lib/auth/contracts'
 import { empty, failure, readJson, requestId, verifyMutationRequest } from '@/lib/auth/http'
 import { getAuthenticatedUser, hasAal2 } from '@/lib/auth/server'
+import { canRemoveMfaFactor } from '@/lib/auth/mfa'
 
 export async function POST(request: NextRequest) {
   const id = requestId()
@@ -19,10 +20,7 @@ export async function POST(request: NextRequest) {
   const { data: factors, error: factorsError } = await bff.client.auth.mfa.listFactors()
   const ownFactors = factors?.all ?? []
   if (factorsError || !ownFactors.some(factor => factor.id === factorId)) return failure(404, 'MFA_UNAVAILABLE', '找不到该验证器。', id)
-  if (ownFactors.length <= 1) {
-    const { data: hasRecovery, error: recoveryError } = await bff.client.rpc('has_mfa_recovery_factor')
-    if (recoveryError || hasRecovery !== true) return failure(503, 'MFA_RECOVERY_NOT_CONFIGURED', '尚未验证恢复方式，不能移除最后一个验证器。', id)
-  }
+  if (!canRemoveMfaFactor(ownFactors, factorId)) return failure(409, 'MFA_BACKUP_FACTOR_REQUIRED', '请先启用并验证另一台独立保存的备用验证器，不能移除唯一的已验证验证器。', id)
   const { error } = await bff.client.auth.mfa.unenroll({ factorId })
   if (error) return failure(503, 'MFA_UNAVAILABLE', '暂时无法移除该验证器。', id)
   return bff.apply(empty())

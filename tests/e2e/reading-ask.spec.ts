@@ -30,6 +30,7 @@ test('ask input is labelled, reachable, and remains usable on a narrow viewport'
   await input.fill('在变化里，我该怎样安放这一刻？')
   await expect(page.getByText('15/500')).toBeVisible()
   await expect(page.getByRole('button', { name: '问一问道' })).toBeVisible()
+  expect((await input.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(160)
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
   await page.screenshot({ path: testInfo.outputPath('ask-input-390x844.png'), fullPage: true })
 })
@@ -40,6 +41,8 @@ test('ask input remains reachable from 320px through desktop widths', async ({ p
     await page.goto('/ask')
     await expect(page.getByLabel('你的问题')).toBeVisible()
     await expect(page.getByRole('button', { name: '问一问道' })).toBeVisible()
+    const minimumHeight = viewport.width <= 640 ? 160 : 180
+    expect((await page.getByLabel('你的问题').boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(minimumHeight)
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width)
   }
 })
