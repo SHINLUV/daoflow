@@ -9,6 +9,11 @@ const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const origin = process.env.LOCAL_APP_URL || 'http://127.0.0.1:3200';
+// Endpoints must stay loopback-only; this override only aligns the SSR cookie
+// name when the loopback ports tunnel to a production host.
+const publicCookieUrl = process.env.DAOFLOW_PUBLIC_SUPABASE_URL || url;
+function cookieNameFor(value) { try { const ref = new URL(value).hostname.split('.')[0]; return ref ? `sb-${ref}-auth-token` : undefined; } catch { return undefined; } }
+const cookieName = cookieNameFor(publicCookieUrl);
 const results = [];
 const runId = randomUUID();
 function check(ok, name) { if (!ok) throw new Error(name); results.push({ assertion: name, status: 'PASS' }); }
@@ -27,7 +32,7 @@ async function main() {
     const made = await admin.auth.admin.createUser({ email, password, email_confirm: true });
     check(!made.error && made.data.user, `fixture ${label}: real Auth user created`);
     const cookies = new Map();
-    const client = createServerClient(url, key, { cookies: { getAll: () => [...cookies].map(([name,value]) => ({name,value})), setAll: rows => rows.forEach(({name,value}) => cookies.set(name,value)) } });
+    const client = createServerClient(url, key, { ...(cookieName ? { cookieOptions: { name: cookieName } } : {}), cookies: { getAll: () => [...cookies].map(([name,value]) => ({name,value})), setAll: rows => rows.forEach(({name,value}) => cookies.set(name,value)) } });
     const signed = await client.auth.signInWithPassword({ email, password });
     check(!signed.error && signed.data.session && signed.data.user.id === made.data.user.id, `fixture ${label}: real password sign-in and JWT`);
     return { id: made.data.user.id, client, cookies };
