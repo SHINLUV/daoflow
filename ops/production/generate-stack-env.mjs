@@ -15,6 +15,7 @@ for (let index = 2; index < process.argv.length; index += 1) {
 const verification = process.argv.includes('--verification')
 const force = process.argv.includes('--force')
 const output = resolve(args.get('--output') ?? 'ops/production/stack.env')
+const stackEnvPath = args.get('--stack-env-path') ?? (verification ? output.replaceAll('\\', '/') : '/opt/daoflow/shared/stack.env')
 const siteUrl = args.get('--site-url') ?? (verification ? 'http://127.0.0.1:18183' : '')
 const apiUrl = args.get('--api-url') ?? (verification ? 'http://127.0.0.1:18184' : '')
 const vendorDir = args.get('--vendor-dir') ?? ''
@@ -56,6 +57,7 @@ if (!verification && (!smtpUser || !smtpPass || !smtpAdminEmail || !agnesKey)) {
 }
 
 const lines = [
+  `DAOFLOW_STACK_ENV_FILE=${stackEnvPath}`,
   `SUPABASE_VENDOR_DIR=${vendorDir}`,
   `DAOFLOW_IMAGE_TAG=${release}`,
   `DAOFLOW_APP_PORT=${verification ? '18183' : '18083'}`,
