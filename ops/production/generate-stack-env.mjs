@@ -18,6 +18,7 @@ const output = resolve(args.get('--output') ?? 'ops/production/stack.env')
 const stackEnvPath = args.get('--stack-env-path') ?? (verification ? output.replaceAll('\\', '/') : '/opt/daoflow/shared/stack.env')
 const siteUrl = args.get('--site-url') ?? (verification ? 'http://127.0.0.1:18183' : '')
 const apiUrl = args.get('--api-url') ?? (verification ? 'http://127.0.0.1:18184' : '')
+const additionalRedirectUrls = args.get('--additional-redirect-urls') ?? `${siteUrl}/**`
 const vendorDir = args.get('--vendor-dir') ?? ''
 const release = args.get('--release') ?? 'verify-local'
 
@@ -26,6 +27,9 @@ if (!siteUrl || !apiUrl || !vendorDir) {
 }
 if (!verification && (!siteUrl.startsWith('https://') || !apiUrl.startsWith('https://'))) {
   throw new Error('Production URLs must use HTTPS')
+}
+if (!verification && additionalRedirectUrls.split(',').some((url) => !url.trim().startsWith('https://'))) {
+  throw new Error('Production redirect URLs must use HTTPS')
 }
 if (existsSync(output) && !force) {
   throw new Error(`Refusing to replace existing environment file: ${output}`)
@@ -74,7 +78,7 @@ const lines = [
   `DASHBOARD_PASSWORD=${randomBytes(32).toString('base64url')}`,
   `SITE_URL=${siteUrl}`,
   `API_EXTERNAL_URL=${apiUrl}/auth/v1`,
-  `ADDITIONAL_REDIRECT_URLS=${siteUrl}/**`,
+  `ADDITIONAL_REDIRECT_URLS=${additionalRedirectUrls}`,
   `SMTP_ADMIN_EMAIL=${smtpAdminEmail}`,
   'SMTP_HOST=smtp.qq.com',
   'SMTP_PORT=465',
