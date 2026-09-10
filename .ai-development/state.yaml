@@ -18,7 +18,7 @@ current_task:
     id: "AUTH_HALL_RAG_DELTA",
     description: "实现新增私人账户、同道大厅、可信经典 RAG、Agnes answer_v2 与问道输入框；旧技术验收不覆盖该增量",
     owner: "Delivery controller",
-    status: REMEDIATED_REACCEPTANCE_AND_EXTERNAL_RUNTIME_REQUIRED,
+    status: INDEPENDENT_REACCEPTANCE_BLOCKED_EXTERNAL_RUNTIME,
   }
 execution_status: AUTH_HALL_RAG_ENGINEERING_VERIFICATION
 starting_commit: f3aa69376edd11b0895c8e58fe58274012fa9a1f
@@ -34,7 +34,7 @@ gate_status:
   development_entry: PASS
   implementation_complete: PASS
   engineering_verification: BLOCKED
-  independent_acceptance: NOT_EXECUTED
+  independent_acceptance: BLOCKED
   uat: NOT_EXECUTED
   pilot_readiness: NOT_EXECUTED
 readiness: { status: NOT_READY }
@@ -85,6 +85,11 @@ artifacts:
     {
       path: docs/redesign-v2/evidence/AH-P0/f4d0a4a/remediation-verification.md,
       status: PASS_LOCAL_REMEDIATION_REACCEPTANCE_REQUIRED,
+    }
+  auth_hall_rag_independent_reacceptance_r2:
+    {
+      path: docs/redesign-v2/reviews/ah-p0-independent-reacceptance-r2.md,
+      status: BLOCKED_EXTERNAL_RUNTIME,
     }
   dao_corpus_manifest:
     {
@@ -164,12 +169,20 @@ verification:
       evidence:
         [docs/redesign-v2/evidence/AH-P0/615c53b/engineering-verification.md],
     }
-  independent_acceptance: { status: NOT_EXECUTED, evidence: [] }
+  independent_acceptance:
+    {
+      status: BLOCKED,
+      evidence:
+        [
+          docs/redesign-v2/reviews/ah-p0-independent-acceptance.md,
+          docs/redesign-v2/reviews/ah-p0-independent-reacceptance-r2.md,
+        ],
+    }
   uat: { status: NOT_EXECUTED, evidence: [] }
 independent_review:
-  status: FAIL_PRESERVED_REACCEPTANCE_REQUIRED
-  report: docs/redesign-v2/reviews/ah-p0-independent-acceptance.md
-  note: "615c53b 的独立验收 FAIL 已保留；f4d0a4a 修复 IA-01 至 IA-04 后，仍须由另一名未参与前次验收者重新验收。"
+  status: BLOCKED
+  report: docs/redesign-v2/reviews/ah-p0-independent-reacceptance-r2.md
+  note: "615c53b 的独立验收 FAIL 已保留；f4d0a4a 修复 IA-01 至 IA-04 后，R2 独立复验关闭本地缺陷，但真实外部运行时证据仍 BLOCKED。"
 visual_polish:
   status: PASS
   candidate: 0a96cbf4ce98c2116ab8812495ce93f0a21bb0fa
@@ -179,6 +192,14 @@ visual_polish:
   visual_score: 92
   note: "本轮限定展示范围通过，不替代上述T09全产品验收记录；真实服务BLOCKED和BUSINESS_UAT_PENDING保持。"
 history:
+  - {
+      event: AUTH_HALL_RAG_INDEPENDENT_REACCEPTANCE_R2,
+      result: BLOCKED,
+      reviewer: ah_p0_reacceptance_r2,
+      candidate: f5e54823923dfada234af785d4132fb7df3d62b0,
+      report: docs/redesign-v2/reviews/ah-p0-independent-reacceptance-r2.md,
+      note: "R1 IA-01 至 IA-04 的本地修复复验通过；真实邮件/OTP/MFA、BFF、双 JWT/RLS/大厅角色、批准语料/Agnes、worker/proxy 和业务 UAT 尚未以外部真实环境验证。",
+    }
   - {
       event: AUTH_HALL_RAG_REMEDIATION_R1,
       result: PASS_LOCAL_REMEDIATION_REACCEPTANCE_REQUIRED,
