@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FormatError, RateLimitedError, TimeoutError, normalizeModelFailure } from '../callModel'
+import { EmptyResponseError, FormatError, NetworkError, ProviderFailure, RateLimitedError, TimeoutError, classifyAgnesFailure, normalizeModelFailure } from '../callModel'
 
 describe('normalizeModelFailure', () => {
   it.each([
@@ -18,9 +18,17 @@ describe('normalizeModelFailure', () => {
     expect(normalizeModelFailure(format, 'agnes', 8000)).toBe(format)
   })
 
-  it('keeps a genuine unknown error out of the timeout category', () => {
+  it('keeps a network closure out of the timeout category and classifies it distinctly', () => {
     const failure = normalizeModelFailure(new Error('socket closed'), 'agnes', 8000)
     expect(failure).not.toBeInstanceOf(TimeoutError)
-    expect(failure.message).toContain('agnes 调用失败')
+    expect(failure).toBeInstanceOf(NetworkError)
+  })
+
+  it('keeps authorization and empty-response diagnostics distinct without secrets', () => {
+    const unauthorized = normalizeModelFailure(Object.assign(new Error('not authorized'), { status: 401 }), 'agnes', 8000)
+    expect(unauthorized).toBeInstanceOf(ProviderFailure)
+    expect(classifyAgnesFailure(unauthorized)).toBe('unauthorized')
+    expect(classifyAgnesFailure(new EmptyResponseError('agnes'))).toBe('empty')
+    expect(unauthorized.message).not.toMatch(/key|token/i)
   })
 })

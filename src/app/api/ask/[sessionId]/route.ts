@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/server'
 import { getLocalChapter } from '@/lib/chapters'
 import { isAskRequestId } from '@/lib/journal/ask-requests'
+import { storedAnswerSnapshot } from '@/lib/ask-worker/answerResponse'
 
 export async function GET(_request: NextRequest, { params }: { params: { sessionId: string } }) {
   const requestId = crypto.randomUUID()
@@ -14,14 +15,18 @@ export async function GET(_request: NextRequest, { params }: { params: { session
 
   const { data, error } = await supabase
     .from('ask_sessions')
-    .select('id,question,matched_chapter_id,ai_response,follow_up_question,ai_provider,degraded,fallback_reason,source_entry_id,volume_id,created_at')
+    .select('id,question,matched_chapter_id,ai_response,follow_up_question,ai_provider,degraded,fallback_reason,source_entry_id,volume_id,created_at,answer_v2,model,prompt_version,corpus_version')
     .eq('id', params.sessionId)
     .eq('user_id', user.id)
     .maybeSingle()
   if (error) return failure(500, 'ASK_SESSION_READ_FAILED', '暂时无法读取这条问道记录。', requestId)
   if (!data) return failure(404, 'ASK_SESSION_NOT_FOUND', '未找到这条问道记录，或你没有权限查看。', requestId)
 
-  const chapter = getLocalChapter(data.matched_chapter_id)
+  const chapter = typeof data.matched_chapter_id === 'number' ? getLocalChapter(data.matched_chapter_id) : null
+  const v2 = storedAnswerSnapshot({
+    schemaVersion: 2, answerV2: data.answer_v2, provider: data.ai_provider, model: data.model,
+    degraded: data.degraded, promptVersion: data.prompt_version, corpusVersion: data.corpus_version, generatedAt: data.created_at,
+  })
   return NextResponse.json({
     session: {
       id: data.id,
@@ -36,6 +41,7 @@ export async function GET(_request: NextRequest, { params }: { params: { session
       sourceEntryId: data.source_entry_id,
       volumeId: data.volume_id,
       createdAt: data.created_at,
+      answerV2: v2?.answerV2 ?? null,
     },
   })
 }

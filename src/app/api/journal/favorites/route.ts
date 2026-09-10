@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { isSupabaseConfigured, createClient } from '@/lib/supabase/server'
+import { verifyMutationRequest } from '@/lib/auth/http'
 import {
   FAVORITES_PAGE_SIZE,
   decodeFavoriteCursor,
@@ -45,6 +46,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const requestId = randomUUID()
+  const security = verifyMutationRequest(request)
+  if (!security.ok) return errorResponse(403, security.code, security.message, requestId)
   const authenticated = await getAuthenticatedClient(requestId)
   if (authenticated instanceof NextResponse) return authenticated
 

@@ -24,6 +24,13 @@ dao.shinluv.cloud, tanfeng.shinluv.cloud {
 
     handle {
         reverse_proxy daoflow-app:3000 {
+            # Never forward a browser-supplied client identity or attestation.
+            # The app accepts the IP bucket only when this Caddy hop supplies
+            # both values from its own environment.
+            header_up -X-Daoflow-Client-Ip
+            header_up -X-Daoflow-Proxy-Attestation
+            header_up X-Daoflow-Client-Ip {remote_host}
+            header_up X-Daoflow-Proxy-Attestation {$DAOFLOW_PROXY_ATTESTATION_SECRET}
             header_up X-Real-IP {remote_host}
         }
     }

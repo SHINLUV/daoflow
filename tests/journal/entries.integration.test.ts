@@ -79,10 +79,11 @@ describe('journal entry protocol (database-free)', () => {
     expect(guard.capture().ownerId).toBe('user-b')
   })
 
-  it('wires every private journal surface through auth events, abort signals, and owner tokens', () => {
+  it('wires every private journal surface through BFF session refresh, abort signals, and owner tokens', () => {
     for (const file of ['JournalEditor.tsx', 'JournalLibrary.tsx', 'VolumeDetail.tsx']) {
       const source = readFileSync(resolve(process.cwd(), 'src/components/v2/journal', file), 'utf8')
-      expect(source).toMatch(/onAuthStateChange/)
+      expect(source).toMatch(/getAuthSession/)
+      expect(source).toMatch(/AUTH_SYNC_STORAGE_KEY/)
       expect(source).toMatch(/signal:\s*request\.controller\.signal/)
       expect(source).toMatch(/privateEpoch\.current\.isCurrent\(request\.token\)/)
     }

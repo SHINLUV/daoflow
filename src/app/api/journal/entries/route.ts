@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/server'
+import { verifyMutationRequest } from '@/lib/auth/http'
 import {
   EntryInputError,
   createPayloadForRpc,
@@ -93,6 +94,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const id = requestId()
+  const security = verifyMutationRequest(request)
+  if (!security.ok) return errorResponse(403, security.code, security.message, id)
   const context = await currentUser(id)
   if ('response' in context) return context.response
   let payload

@@ -22,6 +22,29 @@ services:
     networks:
       - daoflow
 
+  ask-worker:
+    image: "daoflow:${DAOFLOW_IMAGE_TAG:?Set DAOFLOW_IMAGE_TAG to the Git commit}"
+    env_file:
+      - app.env
+    depends_on:
+      - app
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        while true; do
+          node -e "fetch('http://app:3000/api/internal/ask-worker',{method:'POST',headers:{'x-daoflow-worker-token':process.env.DAOFLOW_ASK_WORKER_TOKEN || ''}}).then(r=>{if(!r.ok)process.exitCode=1}).catch(()=>{process.exitCode=1})" || true
+          sleep 1
+        done
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - daoflow
+
 networks:
   daoflow:
     name: daoflow

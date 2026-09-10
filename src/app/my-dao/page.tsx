@@ -1,21 +1,16 @@
 'use client'
-import { FormEvent, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowUpRight, ArrowRight, ArrowClockwise, EnvelopeSimple, CaretDown, SignOut } from '@phosphor-icons/react'
-import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
+import { ArrowUpRight, ArrowRight, ArrowClockwise, CaretDown, SignOut } from '@phosphor-icons/react'
+import { AUTH_SYNC_STORAGE_KEY, announceAuthChange, getAuthSession, postAuth } from '@/lib/auth/browser'
 import CloudBackground from '@/components/CloudBackground'
 import DaoLoading from '@/components/DaoLoading'
-import type { User } from '@supabase/supabase-js'
-import { authCallbackStatusMessage, clearDaoFlowSessionStorage, safeNext } from '@/lib/auth/safeNext'
+import { authCallbackStatusMessage, clearDaoFlowSessionStorage } from '@/lib/auth/safeNext'
 
 interface AskSession { id: string; question: string; ai_response: string; follow_up_question: string | null; created_at: string }
 export default function MyDaoPage() {
-  const [supabase] = useState(() => createClient())
-  const [user, setUser] = useState<User | null | undefined>(undefined)
-  const [email, setEmail] = useState('')
-  const [sending, setSending] = useState(false)
-  const [sent, setSent] = useState(false)
+  const [user, setUser] = useState<{ id: string; email: string | null } | null | undefined>(undefined)
   const [error, setError] = useState('')
   const [sessions, setSessions] = useState<AskSession[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
@@ -23,34 +18,32 @@ export default function MyDaoPage() {
   const [expanded, setExpanded] = useState<string | null>(null)
   const [attempt, setAttempt] = useState(0)
   const [signingOut, setSigningOut] = useState(false)
-  const [authNext, setAuthNext] = useState('/my-dao')
   const authenticatedUserId = useRef<string | null>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const callbackMessage = authCallbackStatusMessage(params.get('auth'))
     if (callbackMessage) setError(callbackMessage)
-    if (params.has('next')) setAuthNext(safeNext(params.get('next')))
   }, [])
 
   useEffect(() => {
-    if (!isSupabaseConfigured) {
-      setUser(null)
-      setError('登录服务尚未配置。你仍可以浏览经典；私人记录功能会在连接完成后开放。')
-      return
-    }
     let active = true
-    const timeout = setTimeout(() => { if (active) { setUser(null); setError('登录服务连接较慢，可稍后重试。') } }, 12000)
-    supabase.auth.getUser().then(({ data }) => { if (active) { authenticatedUserId.current = data.user?.id ?? null; setUser(data.user); clearTimeout(timeout) } }).catch(() => { if (active) { authenticatedUserId.current = null; setUser(null); setError('暂时无法连接登录服务。'); clearTimeout(timeout) } })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!active) return
-      const previousUserId = authenticatedUserId.current
-      if (event === 'SIGNED_OUT' && previousUserId) clearDaoFlowSessionStorage(window.sessionStorage, previousUserId)
-      authenticatedUserId.current = session?.user?.id ?? null
-      setUser(session?.user ?? null)
-    })
-    return () => { active = false; clearTimeout(timeout); subscription.unsubscribe() }
-  }, [supabase])
+    const refresh = () => {
+      void getAuthSession().then(session => {
+        if (!active) return
+        const nextUser = session.user
+        const previousUserId = authenticatedUserId.current
+        if (!nextUser && previousUserId) clearDaoFlowSessionStorage(window.sessionStorage, previousUserId)
+        authenticatedUserId.current = nextUser?.id ?? null
+        setUser(nextUser)
+      }).catch(() => { if (active) { setUser(null); setError('暂时无法连接登录服务。') } })
+    }
+    refresh()
+    const onFocus = () => refresh()
+    const onStorage = (event: StorageEvent) => { if (event.key === AUTH_SYNC_STORAGE_KEY) refresh() }
+    window.addEventListener('focus', onFocus); window.addEventListener('storage', onStorage)
+    return () => { active = false; window.removeEventListener('focus', onFocus); window.removeEventListener('storage', onStorage) }
+  }, [])
 
   useEffect(() => {
     if (!user) return
@@ -67,33 +60,14 @@ export default function MyDaoPage() {
     return () => { active = false; clearTimeout(timeout); controller.abort() }
   }, [user, attempt])
 
-  async function sendLink(e: FormEvent) {
-    e.preventDefault()
-    if (!email.trim() || sending || sent) return
-    if (!isSupabaseConfigured) {
-      setError('登录服务尚未配置，暂时不能发送登录链接。')
-      return
-    }
-    setSending(true)
-    setError('')
-    try {
-      const callback = new URL('/auth/callback', window.location.origin)
-      callback.searchParams.set('next', authNext)
-      const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: callback.toString() } })
-      if (error) setError('登录链接未能发送，请稍后重试。')
-      else setSent(true)
-    } catch { setError('连接失败，请检查网络后重试。') }
-    finally { setSending(false) }
-  }
   async function signOut() {
     const signingOutUserId = authenticatedUserId.current ?? user?.id ?? null
     setSigningOut(true)
     try {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
+      await postAuth('/api/auth/sign-out')
       if (signingOutUserId) clearDaoFlowSessionStorage(window.sessionStorage, signingOutUserId)
       authenticatedUserId.current = null
-      setUser(null); setSessions([]); setExpanded(null)
+      setUser(null); setSessions([]); setExpanded(null); announceAuthChange()
     } catch { setError('退出未成功，请再试一次。') }
     finally { setSigningOut(false) }
   }
@@ -104,12 +78,7 @@ export default function MyDaoPage() {
       <div className="dao-account-content">
         <span className="dao-eyebrow">回望，也是前行</span><h1>我的道</h1><p>留住每一次与自己的对话。<br />再回头看时，也许已有了不同的答案。</p>
         {user === undefined && <DaoLoading />}
-        {user === null && (sent ? <div className="dao-error" role="status"><EnvelopeSimple size={28} /><h2 style={{ marginTop: 18 }}>一封信，已在路上。</h2><p>请查收 {email}，点击邮件中的链接即可登录。</p><button className="dao-text-link" onClick={() => { setSent(false); setEmail('') }}>换一个邮箱<ArrowRight size={16} /></button></div> : <form className="dao-account-form" onSubmit={sendLink}>
-          <label htmlFor="dao-email">邮箱地址</label>
-          <input id="dao-email" type="email" autoComplete="email" required value={email} onChange={e => { setEmail(e.target.value); setError('') }} placeholder="you@example.com" disabled={sending} />
-          <button className="dao-primary" type="submit" disabled={sending || !email.trim()}>{sending ? '正在发送' : '发送登录链接'}<ArrowUpRight size={17} /></button>
-          <small className="dao-account-note">无需密码。通过邮件中的链接，回到你的问道记录。</small>
-        </form>)}
+        {user === null && <div className="dao-error" role="status"><h2 style={{ marginTop: 18 }}>你的记录在这里等你。</h2><p>登录后即可回到私人的问道、心笺与卷册。</p><Link className="dao-primary" href="/auth/login?next=%2Fmy-dao">登录或注册<ArrowRight size={16} /></Link></div>}
         {error && <p className="dao-status" role="alert" style={{ marginTop: 20 }}>{error}</p>}
         {user && <>
           <p className="dao-status">{user.email}</p>

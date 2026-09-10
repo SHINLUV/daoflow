@@ -6,7 +6,7 @@ import { ArrowUpRight } from '@phosphor-icons/react'
 import { NowExperience, type AuthState, type SaveState } from '@/components/v2/home/NowExperience'
 import { SixRealms } from '@/components/v2/home/SixRealms'
 import { DailyReading } from '@/components/v2/home/DailyReading'
-import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
+import { AUTH_SYNC_STORAGE_KEY, csrfFetch, getAuthSession } from '@/lib/auth/browser'
 import type { CreateEntry } from '@/lib/journal/contracts'
 import { useDaoNavigation } from '@/components/v2/motion/MotionProvider'
 import styles from '@/components/v2/home/home.module.css'
@@ -22,8 +22,7 @@ function errorMessage(value: unknown) {
 }
 
 export default function HomePage() {
-  const [supabase] = useState(() => createClient())
-  const [authState, setAuthState] = useState<AuthState>(isSupabaseConfigured ? 'loading' : 'unavailable')
+  const [authState, setAuthState] = useState<AuthState>('loading')
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [suggestion, setSuggestion] = useState<{ question: string; revision: number }>({ question: '', revision: 0 })
   const [lastVolume, setLastVolume] = useState<LastVolume>(null)
@@ -31,18 +30,14 @@ export default function HomePage() {
   const savedTimer = useRef<number | null>(null)
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return
     let active = true
-    supabase.auth.getUser().then(({ data, error }) => {
-      if (!active) return
-      if (error) { setAuthState('unavailable'); return }
-      setAuthState(data.user ? 'authenticated' : 'anonymous')
-    }).catch(() => { if (active) setAuthState('unavailable') })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (active) setAuthState(session?.user ? 'authenticated' : 'anonymous')
-    })
-    return () => { active = false; subscription.unsubscribe(); if (savedTimer.current) window.clearTimeout(savedTimer.current) }
-  }, [supabase])
+    const refresh = () => { void getAuthSession().then(session => { if (active) setAuthState(session.user ? 'authenticated' : 'anonymous') }).catch(() => { if (active) setAuthState('unavailable') }) }
+    refresh()
+    const onFocus = () => refresh()
+    const onStorage = (event: StorageEvent) => { if (event.key === AUTH_SYNC_STORAGE_KEY) refresh() }
+    window.addEventListener('focus', onFocus); window.addEventListener('storage', onStorage)
+    return () => { active = false; window.removeEventListener('focus', onFocus); window.removeEventListener('storage', onStorage); if (savedTimer.current) window.clearTimeout(savedTimer.current) }
+  }, [])
 
   useEffect(() => {
     if (authState !== 'authenticated') { setLastVolume(null); return }
@@ -59,7 +54,7 @@ export default function HomePage() {
   async function saveDraft(draft: CreateEntry) {
     setSaveState('saving')
     try {
-      const response = await fetch('/api/journal/entries', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(draft) })
+      const response = await csrfFetch('/api/journal/entries', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(draft) })
       const payload = await response.json().catch(() => null)
       if (!response.ok) throw new Error(errorMessage(payload))
       setSaveState('saved')

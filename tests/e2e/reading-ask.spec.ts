@@ -11,14 +11,37 @@ test('anonymous FavoriteControls leaves its initial loading state with a clear o
   await expect(page.getByText(/请先登录后管理收藏与批注|收藏需要数据库配置|收藏服务暂不可用|尚未收藏本章原文/).first()).toBeVisible()
 })
 
-test('anonymous ask consumes an in-tab draft without leaking it into the URL', async ({ page }) => {
+test('anonymous ask preserves the draft and fails closed without a trusted proxy limit', async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem('daoflow:ask:draft', '我想慢一点看清这份焦虑。'))
   await page.goto('/ask')
   await expect(page).toHaveURL(/\/ask$/)
   await expect(page.getByLabel('你的问题')).toHaveValue('我想慢一点看清这份焦虑。')
   await page.getByRole('button', { name: '问一问道' }).click()
-  await expect(page.getByRole('heading', { name: '我想慢一点看清这份焦虑。' })).toBeVisible({ timeout: 30_000 })
-  await expect(page.getByText(/本次回答不会进入历史|本次回答未保存到云端历史/)).toBeVisible()
+  await expect(page.getByText(/匿名问道限流尚未配置可信代理|匿名问道暂不可用|账户安全会话尚未就绪/)).toBeVisible()
+  await expect(page.getByLabel('你的问题')).toHaveValue('我想慢一点看清这份焦虑。')
+})
+
+test('ask input is labelled, reachable, and remains usable on a narrow viewport', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/ask')
+  const input = page.getByLabel('你的问题')
+  await expect(input).toBeVisible()
+  await expect(input).toHaveAttribute('maxlength', '500')
+  await input.fill('在变化里，我该怎样安放这一刻？')
+  await expect(page.getByText('15/500')).toBeVisible()
+  await expect(page.getByRole('button', { name: '问一问道' })).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
+  await page.screenshot({ path: testInfo.outputPath('ask-input-390x844.png'), fullPage: true })
+})
+
+test('ask input remains reachable from 320px through desktop widths', async ({ page }) => {
+  for (const viewport of [{ width: 320, height: 700 }, { width: 768, height: 900 }, { width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
+    await page.setViewportSize(viewport)
+    await page.goto('/ask')
+    await expect(page.getByLabel('你的问题')).toBeVisible()
+    await expect(page.getByRole('button', { name: '问一问道' })).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width)
+  }
 })
 
 test.describe('T04 reading and favorites — real authenticated browser flow', () => {
@@ -66,20 +89,20 @@ test.describe('T04 reading and favorites — real authenticated browser flow', (
 })
 
 test.describe('T07 ask handoff — browser flow', () => {
-  test.skip(!askEnabled, 'BLOCKED: set DAOFLOW_E2E_ASK=1 with a real local authenticated storage state and controllable-model fixture.')
+  test.skip(!askEnabled, 'BLOCKED: set DAOFLOW_E2E_ASK=1 with a real local BFF-authenticated storage state, deployed worker, and approved controllable Agnes/RAG fixture.')
   test.use({ storageState: storageState! })
 
   test('persists a draft, waits for the real result, and reloads it through the ID-only history URL', async ({ page }) => {
     const question = `E2E 问道 ${Date.now()}`
     let savedSessionId: string | null = null
-    let savedInterpretation: string | null = null
+    let savedSummary: string | null = null
     page.on('response', async response => {
       if (!response.url().includes('/api/ask') && !response.url().includes('/api/journal/ask-requests/')) return
       try {
-        const body = await response.json() as { sessionId?: unknown; interpretation?: unknown; result?: { interpretation?: unknown } }
+        const body = await response.json() as { sessionId?: unknown; answerV2?: { summary?: unknown }; result?: { answerV2?: { summary?: unknown } } }
         if (typeof body.sessionId === 'string') savedSessionId = body.sessionId
-        const interpretation = body.interpretation ?? body.result?.interpretation
-        if (typeof interpretation === 'string') savedInterpretation = interpretation
+        const summary = body.answerV2?.summary ?? body.result?.answerV2?.summary
+        if (typeof summary === 'string') savedSummary = summary
       } catch { /* Non-JSON or intermediate responses are not the final saved result. */ }
     })
     await page.evaluate(value => sessionStorage.setItem('daoflow:ask:draft', JSON.stringify({ question: value })), question)
@@ -88,14 +111,14 @@ test.describe('T07 ask handoff — browser flow', () => {
     await expect(page.getByLabel('你的问题')).toHaveValue(question)
     await page.getByRole('button', { name: '问一问道' }).click()
     await expect(page.getByRole('heading', { name: question })).toBeVisible({ timeout: 60_000 })
-    await expect(page.getByRole('heading', { name: '回应' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '看见困惑' })).toBeVisible()
     await expect.poll(() => savedSessionId, { timeout: 10_000 }).not.toBeNull()
-    await expect.poll(() => savedInterpretation, { timeout: 10_000 }).not.toBeNull()
+    await expect.poll(() => savedSummary, { timeout: 10_000 }).not.toBeNull()
 
     await page.goto(`/ask?sessionId=${savedSessionId}`)
     await expect(page).toHaveURL(new RegExp(`/ask\\?sessionId=${savedSessionId}$`))
     await expect(page.getByRole('heading', { name: question })).toBeVisible()
-    await expect(page.getByText(savedInterpretation!, { exact: true })).toBeVisible()
+    await expect(page.getByText(savedSummary!, { exact: true })).toBeVisible()
   })
 
   test('submits and persists the confirmed entry handoff with its owned links', async ({ page }) => {
@@ -106,7 +129,7 @@ test.describe('T07 ask handoff — browser flow', () => {
     const question = `从心笺发起 ${Date.now()}`
     let submittedPayload: { sourceEntryId?: unknown; volumeId?: unknown } | null = null
     let savedSessionId: string | null = null
-    let savedInterpretation: string | null = null
+    let savedSummary: string | null = null
     page.on('request', request => {
       if (request.method() !== 'POST' || !request.url().endsWith('/api/ask')) return
       submittedPayload = request.postDataJSON() as { sourceEntryId?: unknown; volumeId?: unknown }
@@ -114,10 +137,10 @@ test.describe('T07 ask handoff — browser flow', () => {
     page.on('response', async response => {
       if (!response.url().includes('/api/ask') && !response.url().includes('/api/journal/ask-requests/')) return
       try {
-        const body = await response.json() as { sessionId?: unknown; interpretation?: unknown; result?: { interpretation?: unknown } }
+        const body = await response.json() as { sessionId?: unknown; answerV2?: { summary?: unknown }; result?: { answerV2?: { summary?: unknown } } }
         if (typeof body.sessionId === 'string') savedSessionId = body.sessionId
-        const interpretation = body.interpretation ?? body.result?.interpretation
-        if (typeof interpretation === 'string') savedInterpretation = interpretation
+        const summary = body.answerV2?.summary ?? body.result?.answerV2?.summary
+        if (typeof summary === 'string') savedSummary = summary
       } catch { /* Ignore intermediate non-JSON responses. */ }
     })
     await page.goto(`/journal/entries/${entryId}`)
@@ -131,18 +154,18 @@ test.describe('T07 ask handoff — browser flow', () => {
     expect(page.url()).not.toContain(encodeURIComponent(question))
     await page.getByRole('button', { name: '问一问道' }).click()
     await expect(page.getByRole('heading', { name: question })).toBeVisible({ timeout: 60_000 })
-    await expect(page.getByRole('heading', { name: '回应' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '看见困惑' })).toBeVisible()
     await expect.poll(() => submittedPayload).toMatchObject({ sourceEntryId: entryId, volumeId: expectedVolumeId })
     await expect.poll(() => savedSessionId, { timeout: 10_000 }).not.toBeNull()
-    await expect.poll(() => savedInterpretation, { timeout: 10_000 }).not.toBeNull()
+    await expect.poll(() => savedSummary, { timeout: 10_000 }).not.toBeNull()
     await expect(page.getByRole('button', { name: '仅重试保存' })).toHaveCount(0)
 
     const historyResponse = page.waitForResponse(response => response.url().endsWith(`/api/ask/${savedSessionId}`) && response.status() === 200)
     await page.goto(`/ask?sessionId=${savedSessionId}`)
-    const history = await (await historyResponse).json() as { session: { sourceEntryId: string | null; volumeId: string | null; interpretation: string } }
+    const history = await (await historyResponse).json() as { session: { sourceEntryId: string | null; volumeId: string | null; answerV2: { summary: string } | null } }
     expect(history.session.sourceEntryId).toBe(entryId)
     expect(history.session.volumeId).toBe(expectedVolumeId)
-    expect(history.session.interpretation).toBe(savedInterpretation)
+    expect(history.session.answerV2?.summary).toBe(savedSummary)
     await expect(page.getByRole('heading', { name: question })).toBeVisible()
     await page.reload()
     await expect(page).toHaveURL(new RegExp(`/ask\\?sessionId=${savedSessionId}$`))

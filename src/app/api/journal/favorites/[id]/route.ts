@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { isSupabaseConfigured, createClient } from '@/lib/supabase/server'
+import { verifyMutationRequest } from '@/lib/auth/http'
 import { isFavoriteId, parseFavoriteDelete, parseFavoritePatch, toFavorite } from '@/lib/journal/favorites'
 import type { ApiError, Favorite } from '@/lib/journal/contracts'
 
@@ -8,6 +9,8 @@ const FAVORITE_COLUMNS = 'id, chapter_id, excerpt, note, version, created_at, up
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const requestId = randomUUID()
+  const security = verifyMutationRequest(request)
+  if (!security.ok) return errorResponse(403, security.code, security.message, requestId)
   if (!isFavoriteId(params.id)) return errorResponse(400, 'INVALID_FAVORITE_ID', '收藏标识无效。', requestId)
   const authenticated = await getAuthenticatedClient(requestId)
   if (authenticated instanceof NextResponse) return authenticated
@@ -30,6 +33,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   const requestId = randomUUID()
+  const security = verifyMutationRequest(request)
+  if (!security.ok) return errorResponse(403, security.code, security.message, requestId)
   if (!isFavoriteId(params.id)) return errorResponse(400, 'INVALID_FAVORITE_ID', '收藏标识无效。', requestId)
   const authenticated = await getAuthenticatedClient(requestId)
   if (authenticated instanceof NextResponse) return authenticated

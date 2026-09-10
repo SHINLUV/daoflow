@@ -6,7 +6,7 @@ import type { Entry, Favorite, TimelineItem, Volume } from '@/lib/journal/contra
 import { PrimaryButton } from '@/components/v2/shared/PrimaryButton'
 import { PaperPanel } from '@/components/v2/shared/PaperPanel'
 import { StatusMessage } from '@/components/v2/shared/StatusMessage'
-import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
+import { AUTH_SYNC_STORAGE_KEY, csrfFetch, getAuthSession } from '@/lib/auth/browser'
 import { InputRevision, PrivateDataEpoch } from '@/lib/journal/entries'
 import styles from './journal.module.css'
 
@@ -22,7 +22,6 @@ function failureMessage(payload: unknown, fallback: string) {
 }
 
 export function JournalLibrary() {
-  const [supabase] = useState(() => createClient())
   const [authKnown, setAuthKnown] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [tab, setTab] = useState<MainTab>('entries')
@@ -66,21 +65,24 @@ export function JournalLibrary() {
   }, [clearPrivateUi])
 
   useEffect(() => {
-    if (!isSupabaseConfigured) { acceptOwner(null); setError('私人记录服务尚未配置。'); return }
     const requestSet = requests.current
     let active = true
     let authRevision = 0
     const refresh = async () => {
       const revision = ++authRevision
-      const { data } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }))
-      if (active && revision === authRevision) acceptOwner(data.user?.id ?? null)
+      try {
+        const session = await getAuthSession()
+        if (active && revision === authRevision) acceptOwner(session.user?.id ?? null)
+      } catch {
+        if (active && revision === authRevision) { acceptOwner(null); setError('私人记录服务暂时不可用。') }
+      }
     }
     void refresh()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { authRevision += 1; acceptOwner(session?.user?.id ?? null) })
     const onFocus = () => { void refresh() }
-    window.addEventListener('focus', onFocus)
-    return () => { active = false; subscription.unsubscribe(); window.removeEventListener('focus', onFocus); requestSet.forEach(controller => controller.abort()) }
-  }, [acceptOwner, supabase])
+    const onStorage = (event: StorageEvent) => { if (event.key === AUTH_SYNC_STORAGE_KEY) void refresh() }
+    window.addEventListener('focus', onFocus); window.addEventListener('storage', onStorage)
+    return () => { active = false; window.removeEventListener('focus', onFocus); window.removeEventListener('storage', onStorage); requestSet.forEach(controller => controller.abort()) }
+  }, [acceptOwner])
 
   function beginPrivateRequest() {
     const controller = new AbortController(); requests.current.add(controller)
@@ -129,7 +131,7 @@ export function JournalLibrary() {
 
   useEffect(() => {
     if (!authKnown) return
-    if (!userId) { setLoading(false); if (isSupabaseConfigured) setError('请先登录后查看私人记录。'); return }
+    if (!userId) { setLoading(false); setError('请先登录后查看私人记录。'); return }
     void load()
   }, [authKnown, load, userId])
 
@@ -155,7 +157,7 @@ export function JournalLibrary() {
     const revision = titleRevision.current.capture()
     const request = beginPrivateRequest(); setActing(true); setError(''); setNotice(''); setFailedAction(null)
     try {
-      const response = await fetch('/api/journal/volumes', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(requestPayload), signal: request.controller.signal })
+      const response = await csrfFetch('/api/journal/volumes', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(requestPayload), signal: request.controller.signal })
       const payload = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(failureMessage(payload, '卷册未能保存。'))
       if (!privateEpoch.current.isCurrent(request.token)) return
@@ -171,7 +173,7 @@ export function JournalLibrary() {
     if (action === 'purge' && !window.confirm(`确定永久删除“${entry.title || '无题心笺'}”吗？此操作无法恢复。`)) return
     const request = beginPrivateRequest(); setActing(true); setError(''); setNotice(''); setFailedAction(null)
     try {
-      const response = await fetch(`/api/journal/entries/${entry.id}`, { method: action === 'purge' ? 'DELETE' : 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(action === 'purge' ? { version: entry.version } : { version: entry.version, deleted: false }), signal: request.controller.signal })
+      const response = await csrfFetch(`/api/journal/entries/${entry.id}`, { method: action === 'purge' ? 'DELETE' : 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(action === 'purge' ? { version: entry.version } : { version: entry.version, deleted: false }), signal: request.controller.signal })
       const payload = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(failureMessage(payload, action === 'purge' ? '永久删除未完成。' : '恢复未完成。'))
       if (!privateEpoch.current.isCurrent(request.token)) return

@@ -2,7 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
+import { AUTH_SYNC_STORAGE_KEY, csrfFetch, getAuthSession, postAuth } from '@/lib/auth/browser'
 import { PaperPanel } from '@/components/v2/shared/PaperPanel'
 import { PrimaryButton } from '@/components/v2/shared/PrimaryButton'
 import { StatusMessage } from '@/components/v2/shared/StatusMessage'
@@ -46,7 +46,6 @@ export function JournalEditor({ entryId }: { entryId?: string }) {
   const { navigate } = useDaoNavigation()
   const searchParams = useSearchParams()
   const requestedVolumeId = searchParams.get('volumeId')
-  const [supabase] = useState(() => createClient())
   const [userId, setUserId] = useState<string | null>(null)
   const [authKnown, setAuthKnown] = useState(false)
   const [entry, setEntry] = useState<Entry | null>(null)
@@ -103,7 +102,7 @@ export function JournalEditor({ entryId }: { entryId?: string }) {
   }
 
   const hydrateEntry = useCallback(async (replaceLocalDraft = false) => {
-    if (!entryId || !isSupabaseConfigured || !userId) { setLoading(false); return }
+    if (!entryId || !userId) { setLoading(false); return }
     const request = beginPrivateRequest()
     const revision = draftRevision.current.capture()
     setLoading(true)
@@ -129,24 +128,24 @@ export function JournalEditor({ entryId }: { entryId?: string }) {
   }, [entryId, userId])
 
   useEffect(() => {
-    if (!isSupabaseConfigured) { setAuthKnown(true); setError('私人记录服务尚未配置；你可以继续写下内容，但现在不能保存。'); return }
     const requestSet = requests.current
     let active = true
     let authRevision = 0
     const refresh = async () => {
       const revision = ++authRevision
-      const { data } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }))
-      if (active && revision === authRevision) acceptUser(data.user?.id ?? null)
+      try {
+        const session = await getAuthSession()
+        if (active && revision === authRevision) acceptUser(session.user?.id ?? null)
+      } catch {
+        if (active && revision === authRevision) { acceptUser(null, true); setError('私人记录服务暂时不可用；你可以继续写下内容，但现在不能保存。') }
+      }
     }
     void refresh()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      authRevision += 1
-      acceptUser(session?.user?.id ?? null, event === 'SIGNED_OUT')
-    })
     const onFocus = () => { void refresh() }
-    window.addEventListener('focus', onFocus)
-    return () => { active = false; subscription.unsubscribe(); window.removeEventListener('focus', onFocus); requestSet.forEach(controller => controller.abort()) }
-  }, [acceptUser, supabase])
+    const onStorage = (event: StorageEvent) => { if (event.key === AUTH_SYNC_STORAGE_KEY) void refresh() }
+    window.addEventListener('focus', onFocus); window.addEventListener('storage', onStorage)
+    return () => { active = false; window.removeEventListener('focus', onFocus); window.removeEventListener('storage', onStorage); requestSet.forEach(controller => controller.abort()) }
+  }, [acceptUser])
 
   useEffect(() => {
     if (!authKnown) return
@@ -257,7 +256,6 @@ export function JournalEditor({ entryId }: { entryId?: string }) {
     if (entryId && entryLoadState !== 'loaded') { setError('这封心笺尚未成功载入，不能改为新建保存。请先重试加载。'); setFailedAction({ kind: 'load' }); return }
     if (!draft.body.trim()) { setError('请先写下一句心事。'); return }
     if (draft.body.trim().length > 10_000) { setError('正文不能超过 10000 个字符。'); return }
-    if (!isSupabaseConfigured) { setError('私人记录服务尚未配置。内容仍保留在此页。'); return }
     if (!userId) { setError('请先登录后保存。点击“登录并保存草稿”可在此浏览器暂存草稿。'); return }
     const request = beginPrivateRequest()
     const revision = draftRevision.current.capture()
@@ -267,7 +265,7 @@ export function JournalEditor({ entryId }: { entryId?: string }) {
         ? { version: entry.version, body: draft.body, title: draft.title || null, mood: draft.mood || null, volumeId: draft.volumeId || null }
         : { id: createId.current, body: draft.body, title: draft.title || undefined, mood: draft.mood || null, volumeId: draft.volumeId || null }
       if (entry && draft.volumeId === (entry.volumeId ?? '')) delete (body as { volumeId?: string | null }).volumeId
-      const response = await fetch(entry ? `/api/journal/entries/${entry.id}` : '/api/journal/entries', {
+      const response = await csrfFetch(entry ? `/api/journal/entries/${entry.id}` : '/api/journal/entries', {
         method: entry ? 'PATCH' : 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: request.controller.signal,
       })
       const payload = await response.json().catch(() => ({}))
@@ -299,7 +297,7 @@ export function JournalEditor({ entryId }: { entryId?: string }) {
     const request = beginPrivateRequest()
     setSaving(true); setError(''); setFailedAction(null); setNotice(deleted ? '正在移入回收站…' : '正在恢复…')
     try {
-      const response = await fetch(`/api/journal/entries/${entry.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ version: entry.version, deleted }), signal: request.controller.signal })
+      const response = await csrfFetch(`/api/journal/entries/${entry.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ version: entry.version, deleted }), signal: request.controller.signal })
       const payload = await response.json().catch(() => ({})); if (!response.ok) throw parseFailure(payload)
       if (!privateEpoch.current.isCurrent(request.token)) return
       const updated = payload.entry as Entry
@@ -314,7 +312,7 @@ export function JournalEditor({ entryId }: { entryId?: string }) {
     const request = beginPrivateRequest()
     setSaving(true); setError(''); setFailedAction(null); setNotice('正在永久删除…')
     try {
-      const response = await fetch(`/api/journal/entries/${entry.id}`, { method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ version: entry.version }), signal: request.controller.signal })
+      const response = await csrfFetch(`/api/journal/entries/${entry.id}`, { method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ version: entry.version }), signal: request.controller.signal })
       const payload = await response.json().catch(() => ({})); if (!response.ok) throw parseFailure(payload)
       if (!privateEpoch.current.isCurrent(request.token)) return
       if (signedDraftKey) sessionStorage.removeItem(signedDraftKey)
@@ -324,14 +322,12 @@ export function JournalEditor({ entryId }: { entryId?: string }) {
 
   async function sendLoginLink(event: FormEvent) {
     event.preventDefault()
-    if (!isSupabaseConfigured || !loginEmail.trim()) return
+    if (!loginEmail.trim()) return
     sessionStorage.setItem(loginDraftKey, JSON.stringify({ entryId: entryId ?? null, draft, createId: createId.current }))
     setSendingLogin(true); setError('')
     try {
-      const destination = `${window.location.origin}/auth/callback?next=${encodeURIComponent(`/journal${entryId ? `/entries/${entryId}` : '/new'}?draftId=${draftId}`)}`
-      const { error: authError } = await supabase.auth.signInWithOtp({ email: loginEmail.trim(), options: { emailRedirectTo: destination } })
-      if (authError) throw authError
-      setNotice('登录链接已发送。请在原标签页完成登录后继续保存；若链接在新标签打开，请回到这里。')
+      await postAuth('/api/auth/otp/request', { email: loginEmail.trim(), redirectPath: `/journal${entryId ? `/entries/${entryId}` : '/new'}?draftId=${draftId}` })
+      setNotice('验证码已经发送。请在原标签页完成登录后继续保存；若链接在新标签打开，请回到这里。')
     } catch { setError('登录链接未能发送。草稿仍保留在当前标签页。') } finally { setSendingLogin(false) }
   }
 
@@ -359,7 +355,7 @@ export function JournalEditor({ entryId }: { entryId?: string }) {
         </div></details>
         {!readOnly && <PrimaryButton type="submit" disabled={saving || loading || Boolean(entryId && entryLoadState !== 'loaded')}>{saving ? '正在保存…' : entryId ? '保存修改' : '保存心笺'}</PrimaryButton>}
       </form>
-      {!authKnown ? <StatusMessage kind="loading">正在确认登录状态…</StatusMessage> : !userId && isSupabaseConfigured && !readOnly && <form className={styles.login} onSubmit={sendLoginLink}><label>登录后保存 <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="you@example.com" required autoComplete="email" /></label><button type="submit" disabled={sendingLogin}>{sendingLogin ? '正在发送…' : '登录并保存草稿'}</button><p>点击即同意仅在此浏览器的原标签页暂存草稿，以完成登录。</p></form>}
+      {!authKnown ? <StatusMessage kind="loading">正在确认登录状态…</StatusMessage> : !userId && !readOnly && <form className={styles.login} onSubmit={sendLoginLink}><label>登录后保存 <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="you@example.com" required autoComplete="email" /></label><button type="submit" disabled={sendingLogin}>{sendingLogin ? '正在发送…' : '登录并保存草稿'}</button><p>点击即同意仅在此浏览器的原标签页暂存草稿，以完成登录。</p></form>}
       {entry && <div className={styles.danger}>{readOnly ? <><button type="button" onClick={() => void setRecycled(false)} disabled={saving}>恢复记录</button><button type="button" onClick={() => void purge()} disabled={saving}>永久删除</button></> : <button type="button" onClick={() => void setRecycled(true)} disabled={saving}>移入回收站</button>}</div>}
       {entry && !readOnly && <button type="button" className="dao-primary" disabled={saving || isDirty} onClick={() => { setAskQuestion(entry.body.length <= 500 ? entry.body : ''); setAskOpen(true) }}>带着这条记录问道</button>}
       {askOpen && <dialog ref={askDialog} onCancel={() => setAskOpen(false)} aria-labelledby="entry-ask-title" style={{ width: 'min(580px, calc(100% - 32px))', padding: 24, background: '#f8f4e9', border: '1px solid #b5a789' }}>

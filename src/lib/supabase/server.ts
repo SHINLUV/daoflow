@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { getSupabaseCookieName } from './storage-key'
+import { authCookieName } from '@/lib/auth/bff'
 
 /**
  * Supabase 服务端客户端（App Router）
@@ -17,7 +17,9 @@ export function createClient() {
     process.env.SUPABASE_INTERNAL_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://supabase-not-configured.invalid',
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'public-anon-key-not-configured',
     {
-      cookieOptions: { name: getSupabaseCookieName(process.env.NEXT_PUBLIC_SUPABASE_URL) },
+      // All business routes consume the HttpOnly BFF session, never the
+      // browser-readable legacy sb-* cookie.
+      cookieOptions: { name: authCookieName() },
       cookies: {
         getAll() {
           return cookieStore.getAll()

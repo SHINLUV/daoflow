@@ -14,6 +14,8 @@ class AskRequestRpcError extends Error {
   }
 }
 
+export { AskRequestRpcError }
+
 export function hasAskServiceConfiguration(): boolean {
   return Boolean((process.env.SUPABASE_INTERNAL_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL) && process.env.SUPABASE_SERVICE_ROLE_KEY)
 }
@@ -59,4 +61,26 @@ export async function saveAskResult(userId: string, requestId: string) {
   const { data, error } = await client.rpc('save_ask_result', { p_user_id: userId, p_request_id: requestId })
   if (error) throw new AskRequestRpcError(error.message, error.code, error.details)
   return data as { state: string; result_json: AskResultSnapshot | null; session_id: string | null } | null
+}
+
+export async function enqueueAskWorkerRequest(userId: string, input: Required<AskRequestInput>) {
+  const client = service()
+  if (!client) return null
+  const { data, error } = await client.rpc('enqueue_ask_worker_job', {
+    p_user_id: userId,
+    p_request_id: input.requestId,
+    p_question: input.question,
+    p_source_entry_id: input.sourceEntryId,
+    p_volume_id: input.volumeId,
+  })
+  if (error) throw new AskRequestRpcError(error.message, error.code, error.details)
+  return data as { request_id?: string; state?: string; lease_until?: string | null } | null
+}
+
+export async function retrySaveAskWorkerResult(userId: string, requestId: string) {
+  const client = service()
+  if (!client) return null
+  const { data, error } = await client.rpc('retry_save_generated_ask_result', { p_user_id: userId, p_request_id: requestId })
+  if (error) throw new AskRequestRpcError(error.message, error.code, error.details)
+  return data as { state?: string; sessionId?: string | null } | null
 }

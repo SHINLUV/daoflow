@@ -15,6 +15,10 @@ export class AskInputError extends Error { constructor(message: string) { super(
 export function parseAskInput(body: unknown): AskRequestInput {
   if (!body || typeof body !== 'object' || Array.isArray(body)) throw new AskInputError('请求体必须是对象。')
   const input = body as Record<string, unknown>
+  const allowed = new Set(['question', 'requestId', 'sourceEntryId', 'volumeId'])
+  for (const key of Object.keys(input)) {
+    if (!allowed.has(key)) throw new AskInputError(`不接受字段 ${key}。`)
+  }
   if (typeof input.question !== 'string') throw new AskInputError('question 必须是文本。')
   const question = input.question.trim()
   if (question.length < 1 || question.length > 500) throw new AskInputError('question 长度须为 1–500 个字符。')

@@ -1,14 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { NextResponse } from 'next/server'
 
 const authState = vi.hoisted(() => ({
   configured: true,
   exchangeCodeForSession: vi.fn(),
 }))
 
-vi.mock('@/lib/supabase/server', () => ({
-  createClient: () => ({ auth: { exchangeCodeForSession: authState.exchangeCodeForSession } }),
-  get isSupabaseConfigured() { return authState.configured },
+vi.mock('@/lib/auth/bff', () => ({
+  createAuthBff: () => ({ client: { auth: { exchangeCodeForSession: authState.exchangeCodeForSession } }, apply: (response: NextResponse) => response }),
+  isAuthConfigured: () => authState.configured,
+  clearAuthCookies: vi.fn(),
+  clearCookie: vi.fn(),
+  markRecoverySession: vi.fn(),
+  transactionCookieName: () => 'daoflow-dev-auth-tx',
+  noStoreRedirect: (location: URL) => NextResponse.redirect(location),
 }))
+vi.mock('@/lib/auth/transactions', () => ({ verifyAuthTransaction: () => null }))
 vi.mock('@/lib/auth/safeNext', async () => import('../../src/lib/auth/safeNext'))
 
 import { GET } from '../../src/app/auth/callback/route'
@@ -28,7 +35,7 @@ describe('auth callback route', () => {
     const location = new URL(response.headers.get('location')!)
 
     expect(location.origin).toBe('https://daoflow.test')
-    expect(location.pathname).toBe('/my-dao')
+    expect(location.pathname).toBe('/auth/login')
     expect(location.searchParams.get('auth')).toBe(status)
     expect(location.searchParams.get('next')).toBe('/journal/new?draftId=draft-1')
   })
@@ -38,7 +45,7 @@ describe('auth callback route', () => {
     const response = await GET(new Request('https://daoflow.test/auth/callback?code=value&next=%2Fjournal'))
     const location = new URL(response.headers.get('location')!)
 
-    expect(location.pathname).toBe('/my-dao')
+    expect(location.pathname).toBe('/auth/login')
     expect(location.searchParams.get('auth')).toBe('unavailable')
     expect(location.searchParams.get('next')).toBe('/journal')
   })
@@ -48,18 +55,18 @@ describe('auth callback route', () => {
     const response = await GET(new Request('https://daoflow.test/auth/callback?code=value&next=%2Fjournal%2Fnew'))
     const location = new URL(response.headers.get('location')!)
 
-    expect(location.pathname).toBe('/my-dao')
+    expect(location.pathname).toBe('/auth/login')
     expect(location.searchParams.get('auth')).toBe('unavailable')
     expect(location.searchParams.get('next')).toBe('/journal/new')
   })
 
   it('never redirects a successful exchange to a control-character authority', async () => {
     const response = await GET(new Request('https://daoflow.test/auth/callback?code=value&next=%2F%2509%2Fevil.example'))
-    expect(response.headers.get('location')).toBe('https://daoflow.test/journal')
+    expect(response.headers.get('location')).toBe('https://daoflow.test/auth/complete?next=%2Fjournal')
   })
 
   it('preserves a supported loopback host in the magic-link callback', async () => {
     const response = await GET(new Request('http://localhost:3200/auth/callback?code=value&next=%2Fmy-dao', { headers: { host: '127.0.0.1:3200' } }))
-    expect(response.headers.get('location')).toBe('http://127.0.0.1:3200/my-dao')
+    expect(response.headers.get('location')).toBe('http://127.0.0.1:3200/auth/complete?next=%2Fmy-dao')
   })
 })

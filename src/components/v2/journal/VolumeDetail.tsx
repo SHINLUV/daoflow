@@ -6,7 +6,7 @@ import type { TimelineItem, Volume } from '@/lib/journal/contracts'
 import { PaperPanel } from '@/components/v2/shared/PaperPanel'
 import { PrimaryButton } from '@/components/v2/shared/PrimaryButton'
 import { StatusMessage } from '@/components/v2/shared/StatusMessage'
-import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
+import { AUTH_SYNC_STORAGE_KEY, csrfFetch, getAuthSession } from '@/lib/auth/browser'
 import { InputRevision, PrivateDataEpoch } from '@/lib/journal/entries'
 import styles from './journal.module.css'
 
@@ -17,7 +17,6 @@ function message(payload: unknown, fallback: string) {
 }
 
 export function VolumeDetail({ id }: { id: string }) {
-  const [supabase] = useState(() => createClient())
   const [authKnown, setAuthKnown] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [volume, setVolume] = useState<Volume | null>(null)
@@ -51,21 +50,24 @@ export function VolumeDetail({ id }: { id: string }) {
   }, [clearPrivateUi])
 
   useEffect(() => {
-    if (!isSupabaseConfigured) { acceptOwner(null); setError('私人卷册服务尚未配置。'); return }
     const requestSet = requests.current
     let active = true
     let authRevision = 0
     const refresh = async () => {
       const revision = ++authRevision
-      const { data } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }))
-      if (active && revision === authRevision) acceptOwner(data.user?.id ?? null)
+      try {
+        const session = await getAuthSession()
+        if (active && revision === authRevision) acceptOwner(session.user?.id ?? null)
+      } catch {
+        if (active && revision === authRevision) { acceptOwner(null); setError('私人卷册服务暂时不可用。') }
+      }
     }
     void refresh()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { authRevision += 1; acceptOwner(session?.user?.id ?? null) })
     const onFocus = () => { void refresh() }
-    window.addEventListener('focus', onFocus)
-    return () => { active = false; subscription.unsubscribe(); window.removeEventListener('focus', onFocus); requestSet.forEach(controller => controller.abort()) }
-  }, [acceptOwner, supabase])
+    const onStorage = (event: StorageEvent) => { if (event.key === AUTH_SYNC_STORAGE_KEY) void refresh() }
+    window.addEventListener('focus', onFocus); window.addEventListener('storage', onStorage)
+    return () => { active = false; window.removeEventListener('focus', onFocus); window.removeEventListener('storage', onStorage); requestSet.forEach(controller => controller.abort()) }
+  }, [acceptOwner])
 
   function beginPrivateRequest() {
     const controller = new AbortController(); requests.current.add(controller)
@@ -111,7 +113,7 @@ export function VolumeDetail({ id }: { id: string }) {
       if (!titleDirtyRef.current || replaceLocalTitle) { titleRef.current = loaded.title; titleRevision.current.bump(); setTitle(loaded.title); setTitleDirty(false); titleDirtyRef.current = false }
       await loadTimeline()
       if (!loaded.archivedAt && privateEpoch.current.isCurrent(request.token)) {
-        const preference = await fetch('/api/journal/preferences', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ lastVolumeId: id }), signal: request.controller.signal })
+        const preference = await csrfFetch('/api/journal/preferences', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ lastVolumeId: id }), signal: request.controller.signal })
         if (!preference.ok && privateEpoch.current.isCurrent(request.token)) setNotice('卷册已打开，但未能更新“上次翻到”的位置。')
       }
       setConflict(false); setFailedAction(null)
@@ -122,7 +124,7 @@ export function VolumeDetail({ id }: { id: string }) {
 
   useEffect(() => {
     if (!authKnown) return
-    if (!userId) { setLoading(false); if (isSupabaseConfigured) setError('请先登录后打开卷册。'); return }
+    if (!userId) { setLoading(false); setError('请先登录后打开卷册。'); return }
     void load()
   }, [authKnown, load, userId])
 
@@ -132,7 +134,7 @@ export function VolumeDetail({ id }: { id: string }) {
     const revision = titleRevision.current.capture()
     setSaving(true); setError(''); setNotice('')
     try {
-      const response = await fetch(`/api/journal/volumes/${id}`, {
+      const response = await csrfFetch(`/api/journal/volumes/${id}`, {
         method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ version: volume.version, ...body }), signal: request.controller.signal,
       })
       const payload = await response.json().catch(() => ({}))
@@ -157,7 +159,7 @@ export function VolumeDetail({ id }: { id: string }) {
     const request = beginPrivateRequest()
     setSaving(true); setError(''); setNotice('')
     try {
-      const response = await fetch(`/api/journal/entries/${item.id}`, {
+      const response = await csrfFetch(`/api/journal/entries/${item.id}`, {
         method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ version: item.entry.version, volumeId: null }), signal: request.controller.signal,
       })
       const payload = await response.json().catch(() => ({}))

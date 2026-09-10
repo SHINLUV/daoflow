@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/server'
+import { verifyMutationRequest } from '@/lib/auth/http'
 import { cursorFor, parseCursor, parseJournalSearch, parseLimit, parseVolumeCreate, toVolume } from '@/lib/journal/volumes'
 
 const columns = 'id,title,archived_at,version,created_at,updated_at'
@@ -45,6 +46,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const requestId = crypto.randomUUID()
+  const security = verifyMutationRequest(request)
+  if (!security.ok) return fail(403, security.code, security.message, requestId)
   const context = await auth(requestId)
   if ('response' in context) return context.response
   try {

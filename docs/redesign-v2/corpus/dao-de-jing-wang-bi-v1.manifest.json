@@ -1,0 +1,853 @@
+{
+  "corpusId": "dao-de-jing-wang-bi-v1",
+  "status": "PENDING_INDEPENDENT_CONTENT_REVIEW",
+  "retrievalEligibility": "NOT_ELIGIBLE",
+  "source": {
+    "title": "道德經（王弼本）",
+    "publisher": "中文維基文庫",
+    "canonicalUrl": "https://zh.wikisource.org/wiki/道德經_(王弼本)",
+    "revisionUrl": "https://zh.wikisource.org/w/index.php?title=道德經_(王弼本)&oldid=2354026",
+    "rawUrl": "https://zh.wikisource.org/w/index.php?title=%E9%81%93%E5%BE%B7%E7%B6%93_(%E7%8E%8B%E5%BC%BC%E6%9C%AC)&oldid=2354026&action=raw",
+    "revisionId": "2354026",
+    "revisionTimestamp": "2024-01-10T10:23:54Z",
+    "rawUtf8Sha256": "4827E5A84B37FDEAA99706B7505B3719B5EB40E2DA8E7B8A0A499944051AF611",
+    "license": "CC-BY-SA-4.0_or_later_pending_license_page_capture"
+  },
+  "deterministicExtraction": {
+    "version": "wikisource-wikitext-chapter-extract-v1",
+    "chapterHeadingPattern": "^==\\s*([一二三四五六七八九十百]+)章\\s*==",
+    "chapterBoundary": "next_heading_of_any_equals_level_or_end_of_document",
+    "verseSelection": "exclude_colon_prefixed_wang_bi_commentary_and_template_only_lines",
+    "normalization": "resolve_wikitext_variant_marker; remove_template_markup; retain_link_display_text; remove_unicode_whitespace_punctuation_symbols; no_script_conversion",
+    "comparison": "UTF-8_SHA256_of_normalized_text"
+  },
+  "localBaseline": {
+    "path": "scripts/seed/chapters.json",
+    "rawUtf8Sha256": "DF9CBB0B7E365F8A00D150201B1BC0B44A5EECD082B6E5EF0C5BED7FA8589240",
+    "chapterCount": 81
+  },
+  "review": {
+    "requiredRole": "independent_classics_reviewer",
+    "requiredEvidence": [
+      "each chapter comparison outcome",
+      "semantic equivalence or approved source replacement",
+      "licence page capture",
+      "approval identity and timestamp"
+    ],
+    "approvalState": "PENDING",
+    "approvedBy": null,
+    "approvedAt": null
+  },
+  "chapterComparisons": [
+    {
+      "chapter": 1,
+      "sourceVerseNormalizedSha256": "05310836E0826249CB3CE3F04AC30E6B0B02413B23FC1B3D82F003EEC7CC1770",
+      "localBaselineNormalizedSha256": "C8DC014734203EA889AB0492B5FB3DC86F9B91567B47DF7924DCF6A02E87B8DB",
+      "sourceVerseNormalizedLength": 59,
+      "localBaselineNormalizedLength": 59,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 2,
+      "sourceVerseNormalizedSha256": "A445CB4C6D46CFB8D0275F9A6C60622A60E3A5C1C149C3A9B5691415E37E39D1",
+      "localBaselineNormalizedSha256": "FCEC231F0CAE0D9612ABEFFD31B5429F927617E087E9312C51908A5473E329C3",
+      "sourceVerseNormalizedLength": 88,
+      "localBaselineNormalizedLength": 88,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 3,
+      "sourceVerseNormalizedSha256": "24852893DF4FA928294C51E0C499FCD8D25A6E4DAF9261848B773012CA324F93",
+      "localBaselineNormalizedSha256": "61F110C30DE836F5D573F299B01E8F09224417CD4F600FB50CAE6EF3653F63D3",
+      "sourceVerseNormalizedLength": 67,
+      "localBaselineNormalizedLength": 67,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 4,
+      "sourceVerseNormalizedSha256": "54EF8FA1CF7FF29AB9AB7D4ACAEFF8CA4CF8E8209B84FD1B2706EB1167729A8A",
+      "localBaselineNormalizedSha256": "B030C08C1685FACA46CFE87A47B215764D91E6C87906ACB597F2AFF6BE5F055A",
+      "sourceVerseNormalizedLength": 42,
+      "localBaselineNormalizedLength": 42,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 5,
+      "sourceVerseNormalizedSha256": "D3D92F300FCF8E162F495D02C91640C98A6EB6C73542A9AA4EE10BB9B4B22355",
+      "localBaselineNormalizedSha256": "B5735D3C093508AEA84BB56C1EE58AE33A4F9944975B0476354C1C6C22A10B12",
+      "sourceVerseNormalizedLength": 45,
+      "localBaselineNormalizedLength": 45,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 6,
+      "sourceVerseNormalizedSha256": "1F6E08BC4CBD6797F4B6A1A2EB300642AB50859C8C9FF33F16446CD409F8E603",
+      "localBaselineNormalizedSha256": "A952E02443EDEA18A8CF6CD390D3EDE5069FF6832E9A875549BDD068593D37F2",
+      "sourceVerseNormalizedLength": 25,
+      "localBaselineNormalizedLength": 25,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 7,
+      "sourceVerseNormalizedSha256": "3C070633966E3B6BAD79A1B39473460664675162F2D78E9F2EB982453BAED477",
+      "localBaselineNormalizedSha256": "D7240BE943418510DCFAAA5E5EA2D0F36E27B1339C4772F51713911B7FA2158E",
+      "sourceVerseNormalizedLength": 49,
+      "localBaselineNormalizedLength": 49,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 8,
+      "sourceVerseNormalizedSha256": "1DAB0D0D159227E3962F735E9527F6EA455286289A9B867BBE4939EC422D59B4",
+      "localBaselineNormalizedSha256": "3F990B0C4B3716B00542B17BB30B41D276C66977BBDED89EAF72EB8FB460AAF3",
+      "sourceVerseNormalizedLength": 50,
+      "localBaselineNormalizedLength": 50,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 9,
+      "sourceVerseNormalizedSha256": "9CD0AAD9DCFCE8EE5B74F63526DA97EEB239D58A438720C2031DF5BAF796C5E3",
+      "localBaselineNormalizedSha256": "3A36000C17EC8A05DCD9FD49F1A4E44F8F0BF57CFFE4084CED89512CEBB5315A",
+      "sourceVerseNormalizedLength": 39,
+      "localBaselineNormalizedLength": 40,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 10,
+      "sourceVerseNormalizedSha256": "21A61B704A451462F5A7D7CCDD07E9012FA33D18AE17DEF3BC691B99C85DAAF6",
+      "localBaselineNormalizedSha256": "DDECFF5119E1086E315135BB5B66EBA1A7539D67A4D1CB8593B99A859BEBBA76",
+      "sourceVerseNormalizedLength": 69,
+      "localBaselineNormalizedLength": 70,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 11,
+      "sourceVerseNormalizedSha256": "26D1B1DF6A3A971D413EBD926F737298BE7BFC77D90BEAAE98A7BC5E64055561",
+      "localBaselineNormalizedSha256": "1FAF6A77D346657747C5715F92931B77D9317F7AACF65A5E9F672B1F66FF8381",
+      "sourceVerseNormalizedLength": 49,
+      "localBaselineNormalizedLength": 49,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 12,
+      "sourceVerseNormalizedSha256": "1A4BCC36DBDCA751B90458DAE47E9761D73C9EAE115B786870034006A75D86BB",
+      "localBaselineNormalizedSha256": "FCF302CC1A9F4A6A9BFE40133C176ACCADDBA023B1D7182E94E23B99DC95F329",
+      "sourceVerseNormalizedLength": 49,
+      "localBaselineNormalizedLength": 49,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 13,
+      "sourceVerseNormalizedSha256": "3819FD90DED9C44825E7377D79CA5AE22B0CBAA84A14AF605511FDBF9F34D2DB",
+      "localBaselineNormalizedSha256": "443349855590F0E53FC8C9073D96CCA17AE8C92C1F74CEC7B034156242158F98",
+      "sourceVerseNormalizedLength": 81,
+      "localBaselineNormalizedLength": 81,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 14,
+      "sourceVerseNormalizedSha256": "409D15B9C1CAA46315826FA3D9BB0AA60C527DEBC4C06F94309E580AE084C689",
+      "localBaselineNormalizedSha256": "498EBBEDAD2ACFEE8F3F657D3169309EC5B777228535D006711A211C4A36CFDF",
+      "sourceVerseNormalizedLength": 94,
+      "localBaselineNormalizedLength": 94,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 15,
+      "sourceVerseNormalizedSha256": "889A8733157FF2CA1B62F68B23D7AED52A66E71644BFBD94C6127287EBDCB22D",
+      "localBaselineNormalizedSha256": "FBBF305EAFEE592630782F016C0B24B02E1A4B176455978EC2B5FFFC9CA32BBA",
+      "sourceVerseNormalizedLength": 97,
+      "localBaselineNormalizedLength": 96,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 16,
+      "sourceVerseNormalizedSha256": "531F3232411A45BD7141E771CA20C8B4167E30592B4AA75B1F59F6668887D584",
+      "localBaselineNormalizedSha256": "EB944A843EFA633238C7E7834AC10C8C296C470C12B0C62B7F6CEBF486732E27",
+      "sourceVerseNormalizedLength": 67,
+      "localBaselineNormalizedLength": 67,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 17,
+      "sourceVerseNormalizedSha256": "6F04826EAD6E749CB40247E7033831BEBAB9E03C28DA40D7916D931891BFAB11",
+      "localBaselineNormalizedSha256": "3496FEEE592F542150498533D74949D9B5157D3F08FE628BE44AA3085789C576",
+      "sourceVerseNormalizedLength": 44,
+      "localBaselineNormalizedLength": 44,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 18,
+      "sourceVerseNormalizedSha256": "63AAFCA8270D1945008061CA529D20C18EF7767F621B0D273196A2303E344996",
+      "localBaselineNormalizedSha256": "B6BF2CDD82910294AB1E28CDBDC1D48960A525261371BF0A078820D53F35EB13",
+      "sourceVerseNormalizedLength": 26,
+      "localBaselineNormalizedLength": 26,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 19,
+      "sourceVerseNormalizedSha256": "E989CF219415BBBD3A912EE7AD2C9171D1353156FA8C196AD50BB7342DCC8981",
+      "localBaselineNormalizedSha256": "A13DCD75E08C648967CAEBA5E73F1987001AE7853B9F83BB1A951DF10B8C7495",
+      "sourceVerseNormalizedLength": 45,
+      "localBaselineNormalizedLength": 49,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 20,
+      "sourceVerseNormalizedSha256": "2384CB153FB9A23FFBF380B2F07E00D0D7864AF274B62D0C921B0E5F84BE6442",
+      "localBaselineNormalizedSha256": "35C5F92310A612831818D823709FE91E2C3E8701004B62FA36DDAE7764B298FF",
+      "sourceVerseNormalizedLength": 132,
+      "localBaselineNormalizedLength": 128,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 21,
+      "sourceVerseNormalizedSha256": "890C5E9B6AC3C3BAD8404F86D3BC06F4A64BE9474173C6AB842C774A6E4A0B27",
+      "localBaselineNormalizedSha256": "9EC05B24BDDB7BEE8008602845AAF3C0A2C20980270C4041A5964EC236333848",
+      "sourceVerseNormalizedLength": 71,
+      "localBaselineNormalizedLength": 71,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 22,
+      "sourceVerseNormalizedSha256": "8C23BD4427BFE54AF470CC8AB16A11FE01F6C7EFB872628F5C83163349AB6F99",
+      "localBaselineNormalizedSha256": "9AF8997C184962F9D28A07B57DD3217107FEFD36ECA78C4D14807673790E827B",
+      "sourceVerseNormalizedLength": 78,
+      "localBaselineNormalizedLength": 78,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 23,
+      "sourceVerseNormalizedSha256": "BB61B6A6464A55AC2CC9A6E7658CB9736E7F139A6DFAF2A183334F2313A766A5",
+      "localBaselineNormalizedSha256": "FB587FB9A30441F99C4E9F76FFADA214EF05BBB536A861E8618CDA73591780E5",
+      "sourceVerseNormalizedLength": 88,
+      "localBaselineNormalizedLength": 86,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 24,
+      "sourceVerseNormalizedSha256": "14D86FB6A2422CB40860D44A237C8693B179982A766B2400435876811064D89C",
+      "localBaselineNormalizedSha256": "E02D6D322B3D6BD55E64B0F35ECB30A3807C43FB643C681C368493904107782F",
+      "sourceVerseNormalizedLength": 47,
+      "localBaselineNormalizedLength": 47,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 25,
+      "sourceVerseNormalizedSha256": "FC9F610380132CCF74295ABA414C0CB70FA43997BD0B043EB3E0B30406790C41",
+      "localBaselineNormalizedSha256": "50F9C302785C25ACF2E82A5CB1DA97461A568426DE7FADE4BBE60270F8BBB0E6",
+      "sourceVerseNormalizedLength": 86,
+      "localBaselineNormalizedLength": 87,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 26,
+      "sourceVerseNormalizedSha256": "B336ECC66B632F837FD8CF204D28CACBFDD90EFCBE3DCEC52E8B8676747DE772",
+      "localBaselineNormalizedSha256": "A24359CEE87190506A8DC3AFE4DABD03324EB6D2DE36D47111198EA58C237388",
+      "sourceVerseNormalizedLength": 47,
+      "localBaselineNormalizedLength": 47,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 27,
+      "sourceVerseNormalizedSha256": "68EAAF9D6E2D913D6F3BBBC004AD16055ACBDB89B8E80679F4482959F3CE12E3",
+      "localBaselineNormalizedSha256": "2B3BB6BAC9FBA85A2C0A43E461C00D525D462ABC5EC2C7B42DDA7FF591F25991",
+      "sourceVerseNormalizedLength": 91,
+      "localBaselineNormalizedLength": 91,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 28,
+      "sourceVerseNormalizedSha256": "9CCACEE6CB38899C79C1805D0DCE8054B31BE9BFE5FD24668E2860F55E80F8E5",
+      "localBaselineNormalizedSha256": "EFAC4CC39D73302631E9F147EB0927D7F075CA8292C479B5FDB44F35F0114919",
+      "sourceVerseNormalizedLength": 82,
+      "localBaselineNormalizedLength": 86,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 29,
+      "sourceVerseNormalizedSha256": "CEC6AFAF7146F20564B736F19873B17341C79931C26391E27881DE6AB8E38B1E",
+      "localBaselineNormalizedSha256": "8045AA4C882F7AC829E18ABCC285B4D1E00F5C1B53A5FFACE675679246A7E5AA",
+      "sourceVerseNormalizedLength": 58,
+      "localBaselineNormalizedLength": 62,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 30,
+      "sourceVerseNormalizedSha256": "D488F02691E79312E8E7C579B1F955D8A34CAB8FB4862AC5585172B5B45B388E",
+      "localBaselineNormalizedSha256": "575D44908D4DFB2BA39F2684CB343FAA1747AD3AAAB40C5C24529D9A7CDBC214",
+      "sourceVerseNormalizedLength": 75,
+      "localBaselineNormalizedLength": 75,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 31,
+      "sourceVerseNormalizedSha256": "7D71D1D03515DDFFD5714115E3EE4158C5BBE6491BB74EA762C8D3A68DFC913A",
+      "localBaselineNormalizedSha256": "1D25401AC9E2C58BF4433131D123EB229B7ECC9950BAFECF8FAF85802A0ADD74",
+      "sourceVerseNormalizedLength": 117,
+      "localBaselineNormalizedLength": 116,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 32,
+      "sourceVerseNormalizedSha256": "F55EA6C678ABDD3C868D2F6346CB7360CCA05D3ECE4ACEA233DE6B6300585FEB",
+      "localBaselineNormalizedSha256": "C619AED25E6D5C1A78C58429B77DB4A94E018009BC85C61933630182552332DB",
+      "sourceVerseNormalizedLength": 71,
+      "localBaselineNormalizedLength": 70,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 33,
+      "sourceVerseNormalizedSha256": "FDB1EDB89DDB57D66530DA8A2E206FF9599AB5507B07EDAC36C7C575468FACF0",
+      "localBaselineNormalizedSha256": "2056D1FB0E4A3A6B14F34660D500A680DFABF3A8234FAD492070C8B0AF5D4499",
+      "sourceVerseNormalizedLength": 38,
+      "localBaselineNormalizedLength": 38,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 34,
+      "sourceVerseNormalizedSha256": "9892699799CD6BF087E643F78DB0FCC61EB6FA43AC764A4DF6FF6D19D1FAF5A3",
+      "localBaselineNormalizedSha256": "2848EDB1180569703CD123D002B6DB9C9B6710878B670065CDA3A26F4D50A3FB",
+      "sourceVerseNormalizedLength": 61,
+      "localBaselineNormalizedLength": 61,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 35,
+      "sourceVerseNormalizedSha256": "B47FAC162F22B6DB2A1B256ADF1A20B016BA80ABCD1E790390FCBF1B6C9097E4",
+      "localBaselineNormalizedSha256": "4256DAF3CE1AEBA7E1BE734E122C7106AF7D8F09DE13FB232FA9391F16558DF3",
+      "sourceVerseNormalizedLength": 43,
+      "localBaselineNormalizedLength": 43,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 36,
+      "sourceVerseNormalizedSha256": "C0D548143054EC5CD0FDCAA770C14EBB97E9FD194C5D7392A50B5EDB536E8E72",
+      "localBaselineNormalizedSha256": "2AEC632FAB1EE2475B978612B841C8A5D9C18CDD226828229DD44CB9E38ABC7C",
+      "sourceVerseNormalizedLength": 56,
+      "localBaselineNormalizedLength": 56,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 37,
+      "sourceVerseNormalizedSha256": "C0D02B723A032FB80050BE32757C753721AF8096087C3B8135FF7007674DAE22",
+      "localBaselineNormalizedSha256": "452A3C9D48D51BE8031CD599C4AA330AB8F8A780920156DC17A171AF102D4A14",
+      "sourceVerseNormalizedLength": 50,
+      "localBaselineNormalizedLength": 52,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 38,
+      "sourceVerseNormalizedSha256": "CF9CA665540A87B0C552C65CBFAAC22C0EDACDDF6BD47840354B28D860525ADF",
+      "localBaselineNormalizedSha256": "8C78479BBEC6CF15771BFB226E54348743F557F946977F1AB9288F3DF176B036",
+      "sourceVerseNormalizedLength": 129,
+      "localBaselineNormalizedLength": 129,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 39,
+      "sourceVerseNormalizedSha256": "293B9092EAB78974C8C6919C772272C6EC36A6A55BAD2084611E3A5F0C328BB2",
+      "localBaselineNormalizedSha256": "2310482057B8668B317946BFDB15655F76725E7861DD97576027F5DA23B8ADC0",
+      "sourceVerseNormalizedLength": 134,
+      "localBaselineNormalizedLength": 135,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 40,
+      "sourceVerseNormalizedSha256": "0BC1F4E21D3BB8A2F272748550FFD75AA2F2538D468FC169FE21E96C97FF4703",
+      "localBaselineNormalizedSha256": "F6D7A91D6B2A074DDA13D1CA48D6F5E8F3E1AEBF2C7B25EA9AC009233BADF076",
+      "sourceVerseNormalizedLength": 21,
+      "localBaselineNormalizedLength": 21,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 41,
+      "sourceVerseNormalizedSha256": "A1C1E386ED1EFF479BC458FA3DFE7A48BA91D565C2CA39BECC24CE2DA84183E8",
+      "localBaselineNormalizedSha256": "B2E2416754286757949CD7DDF87A94C6F88550B4EF087DC63F11136E1B843849",
+      "sourceVerseNormalizedLength": 95,
+      "localBaselineNormalizedLength": 95,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 42,
+      "sourceVerseNormalizedSha256": "9511952ED4D2A201C68EF1594C8DB0C84C2F9144E32B58952C6F3B9ED3026B8B",
+      "localBaselineNormalizedSha256": "E41262D59988B6822F4FF92536DDA8A9CCF43FDC32E72B75D36FADB6685BFD86",
+      "sourceVerseNormalizedLength": 73,
+      "localBaselineNormalizedLength": 73,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 43,
+      "sourceVerseNormalizedSha256": "96B437B1CAA748B3D70AAFF58BA55E9CD67DE68F8044BDF716DC57FC00DB5C99",
+      "localBaselineNormalizedSha256": "2AF8B958F0002F18B5C0B18FD50BC09B1369878834D2AD94400174D8193710B0",
+      "sourceVerseNormalizedLength": 39,
+      "localBaselineNormalizedLength": 39,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 44,
+      "sourceVerseNormalizedSha256": "9B4B2C529307F7A7D94290654A7B283FC58F24E7A0C1AA64D23013C28CC10BF1",
+      "localBaselineNormalizedSha256": "206C27E6773764776B53D30B3AFA7E5F9C9EACD674C7AE9DE08CA72243516555",
+      "sourceVerseNormalizedLength": 39,
+      "localBaselineNormalizedLength": 38,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 45,
+      "sourceVerseNormalizedSha256": "F0B9CFF44584AB0163EEFFBD58BE0583651C4505996F103EB64A7517D8509612",
+      "localBaselineNormalizedSha256": "950CA04E43F04E3C7EABB4354FEF52293B5015CE2ACFD92DDB9E65714D899085",
+      "sourceVerseNormalizedLength": 52,
+      "localBaselineNormalizedLength": 40,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 46,
+      "sourceVerseNormalizedSha256": "504237172E5D00225BBDD9C5BABDEFE65AAC3D8AD7DF74DA252EB7232213DBD3",
+      "localBaselineNormalizedSha256": "29580056EDB4C2C7CDB5A1C8ABFCB84B46527501F29FE001B6B5C0B71701B3AE",
+      "sourceVerseNormalizedLength": 39,
+      "localBaselineNormalizedLength": 39,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 47,
+      "sourceVerseNormalizedSha256": "F73D83BF1A8435663645CC857B0D9318D6290DB2E035967A8601CEB9755D5F54",
+      "localBaselineNormalizedSha256": "4DA244F1B9E5457741BDDF0E5F560F89AD220E3CE9FF961D02B00455A60A07E7",
+      "sourceVerseNormalizedLength": 36,
+      "localBaselineNormalizedLength": 36,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 48,
+      "sourceVerseNormalizedSha256": "49302DDC9E80A9BAF1E3CF05573B513F10EDA7858E139AA410CFCF127221519D",
+      "localBaselineNormalizedSha256": "6A29C505DDB925CF226E2FA9BBAA57572A4F96AFC2C5B922788AA159018A8445",
+      "sourceVerseNormalizedLength": 40,
+      "localBaselineNormalizedLength": 40,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 49,
+      "sourceVerseNormalizedSha256": "55BBF3D0FA6C3FB9E98779296478D3009D7BB43B2F1B5B01642E845CF64177B6",
+      "localBaselineNormalizedSha256": "330FD6882AD9669C678801B515C5C56B86179D9E1DA8FE6AF6513F5A3601E845",
+      "sourceVerseNormalizedLength": 64,
+      "localBaselineNormalizedLength": 65,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 50,
+      "sourceVerseNormalizedSha256": "9C00AE8989390CFF3ECBF1888062AA7ED140F3AFC30010B6E7881E24690335D2",
+      "localBaselineNormalizedSha256": "77478BE73E1E616C3BA1332B0946BF4319FF53AB72C6F960165E734FE832D8CE",
+      "sourceVerseNormalizedLength": 80,
+      "localBaselineNormalizedLength": 81,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 51,
+      "sourceVerseNormalizedSha256": "0C702B52A6064BBAAAA2BD2BE2BD73CC3C349079445831EE36D1EAC42DCFECF2",
+      "localBaselineNormalizedSha256": "E6DAED612F46B380A1128DCE93D68E00FAD70BF4E4894686D68A76884179549D",
+      "sourceVerseNormalizedLength": 72,
+      "localBaselineNormalizedLength": 72,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 52,
+      "sourceVerseNormalizedSha256": "F2A08E3D6E9895ACD561F4E7A18AC5C2416F871E322F6C916EF06FCC17DE5DBC",
+      "localBaselineNormalizedSha256": "02C21A3850C4E2B83FF63AA65B3EE13089052C8ABB34E0B6651D0CB0F558D157",
+      "sourceVerseNormalizedLength": 72,
+      "localBaselineNormalizedLength": 72,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 53,
+      "sourceVerseNormalizedSha256": "CCA22837F56250223EAA6B1BF3AA0956746B2A076D1EB130A2F10422DDCA2FCD",
+      "localBaselineNormalizedSha256": "BE8391644510F981E9CACE9B89EDD4E1E909663EC56A761FE65B8DCD88392E12",
+      "sourceVerseNormalizedLength": 52,
+      "localBaselineNormalizedLength": 52,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 54,
+      "sourceVerseNormalizedSha256": "6ADFADDCA37FFDC2FF966B00FBE57A95CCF273E3DAF4FA9045ADEF4E55050D58",
+      "localBaselineNormalizedSha256": "9A993433EBE9BEBF896742D5DB3ED3F3A2D43AD5B5803987F1DBFE5DF3A654D2",
+      "sourceVerseNormalizedLength": 91,
+      "localBaselineNormalizedLength": 91,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 55,
+      "sourceVerseNormalizedSha256": "D24009F07072DF94842533375DC8EB3F761C18ED360DDB0C1F9041A179359E96",
+      "localBaselineNormalizedSha256": "629E194451A3FF3511B06027C2EBB1423814DCC87A24901C5CF831A4B7A1D80C",
+      "sourceVerseNormalizedLength": 81,
+      "localBaselineNormalizedLength": 79,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 56,
+      "sourceVerseNormalizedSha256": "6AA5F10402FDCB2F5E844A008D3A147A4ABF0230F1AB3D22ADD7133E0190E0B7",
+      "localBaselineNormalizedSha256": "F6CCE8C1701EC721ABE2548B5F9985ECA34DBD550F145764BAB884F7E09EC377",
+      "sourceVerseNormalizedLength": 66,
+      "localBaselineNormalizedLength": 66,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 57,
+      "sourceVerseNormalizedSha256": "77E2336E137E370F2B5BA13D0DAE0B894D581FD95D652B5C4D5525C2005BED4A",
+      "localBaselineNormalizedSha256": "0304F6AFAAC61E660456C8F3F97E744151C3D47AAFD2C1F941A69BC6B98EF67A",
+      "sourceVerseNormalizedLength": 88,
+      "localBaselineNormalizedLength": 88,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 58,
+      "sourceVerseNormalizedSha256": "D3CD16AC81820EA86C8DC88B2D7499B8837D487DD88C9DA20C26BBD82FAB9E03",
+      "localBaselineNormalizedSha256": "0E3F12DCF8FB85FB38EBFCA3E71E9850F83C9F56CC95FF7C969337BFEDD73065",
+      "sourceVerseNormalizedLength": 70,
+      "localBaselineNormalizedLength": 71,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 59,
+      "sourceVerseNormalizedSha256": "0B620A3936507AA21564B8A0DE5A7080D681A512CAB277AF538CD86E946ADDC4",
+      "localBaselineNormalizedSha256": "1EBE42E71FCE6D136FE8AC86B61D03CEE60E35CCC15D9702453C32CF10738DCC",
+      "sourceVerseNormalizedLength": 64,
+      "localBaselineNormalizedLength": 64,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 60,
+      "sourceVerseNormalizedSha256": "067F1ED37BE2D0E1F027DAAD8ECDD1E4A331585F6B235DE5F7D134F6F6E91105",
+      "localBaselineNormalizedSha256": "7BBE778C890303B4416FEBB21E37FAE0B69AEF5B013BD863FFC5F1B5D0779207",
+      "sourceVerseNormalizedLength": 48,
+      "localBaselineNormalizedLength": 48,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 61,
+      "sourceVerseNormalizedSha256": "21A5B414375DB8473F222A3BF2DE9649CA59A677413E2C77BD581326FDC68BDF",
+      "localBaselineNormalizedSha256": "607844C0122377D8750ED2B310AD03BA54A86859ACE73AFCE74C487FA107D8FF",
+      "sourceVerseNormalizedLength": 82,
+      "localBaselineNormalizedLength": 83,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 62,
+      "sourceVerseNormalizedSha256": "7C72BE139867BCCD1ED2AD098AB80BF4CDD6787B9E54B1C60D334DD09C1C0617",
+      "localBaselineNormalizedSha256": "788D97A470301284E9A286C82D063F3F465532A19DE313D8AE6F4DD0C4D8E206",
+      "sourceVerseNormalizedLength": 80,
+      "localBaselineNormalizedLength": 81,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 63,
+      "sourceVerseNormalizedSha256": "32FCA178253053E6A531E2D710B44877389DE2D635AF1A3C5F61B6A4225B0CEA",
+      "localBaselineNormalizedSha256": "BE495AFBB6B098D64EB798CAFB109538018D36C17781611BB954CA08D3FA525B",
+      "sourceVerseNormalizedLength": 79,
+      "localBaselineNormalizedLength": 79,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 64,
+      "sourceVerseNormalizedSha256": "77900F9211E799BAE982F04C2500F0C0FDCA0FFC2D57E65C5B702E4C2B3E74D3",
+      "localBaselineNormalizedSha256": "516EE4614217585EBE73628E6BCE042386FFB48D5648B8CBEDCA9264980FFB71",
+      "sourceVerseNormalizedLength": 125,
+      "localBaselineNormalizedLength": 125,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 65,
+      "sourceVerseNormalizedSha256": "7C7DD72A8D7A2E19E9A1A4848FDBD5E731630703D79853119198D2C0DFCB8CC5",
+      "localBaselineNormalizedSha256": "B678261573B17696D609DDD2EAE9E85CFF43A098E43ECA2A861446F56FB02ACA",
+      "sourceVerseNormalizedLength": 69,
+      "localBaselineNormalizedLength": 69,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 66,
+      "sourceVerseNormalizedSha256": "B167F4E4D274E6D485A798AA5E04C2784C8D68F9130868D491E872E59B07BF61",
+      "localBaselineNormalizedSha256": "36BD9D807E98EC044FEE7F6BBF7726F0270613152016DAF1A9EA5AE71AD1A6CE",
+      "sourceVerseNormalizedLength": 76,
+      "localBaselineNormalizedLength": 79,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 67,
+      "sourceVerseNormalizedSha256": "F056582660591D79928140C289E713C86631B1544BEF71F393EDB1D2E27943F0",
+      "localBaselineNormalizedSha256": "3FFAAEED5F5836A489C02B47B4CB2AB5C6AB90CA136B8C0C9651645986DB272C",
+      "sourceVerseNormalizedLength": 99,
+      "localBaselineNormalizedLength": 99,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 68,
+      "sourceVerseNormalizedSha256": "C8E1149B0C3A94B5A8AA607191967B40CC1208842AE3F55AECC3AF4C5A672BD2",
+      "localBaselineNormalizedSha256": "5B9573EC6C8CD482F74F812269F45EE6439142C4FBC47C8A59654C30B0945D97",
+      "sourceVerseNormalizedLength": 43,
+      "localBaselineNormalizedLength": 43,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 69,
+      "sourceVerseNormalizedSha256": "7DF994114D6917751A18BC8674504A109AC40E8A18569F1F87DAB3A8D2532F47",
+      "localBaselineNormalizedSha256": "E1B845D78CAE3996C33A0F4D2B78E9F1D0A6CC46F8AB10B9B820FAD36F8E4BB8",
+      "sourceVerseNormalizedLength": 54,
+      "localBaselineNormalizedLength": 54,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 70,
+      "sourceVerseNormalizedSha256": "D96C95F67770CC2AF6A84DD6579BF2DDF66A89A790E646E91F9F721823335AAF",
+      "localBaselineNormalizedSha256": "7C4298758D29659133F17653A89DB13006321C1B50490E62E5AD1C5F735F72E6",
+      "sourceVerseNormalizedLength": 47,
+      "localBaselineNormalizedLength": 48,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 71,
+      "sourceVerseNormalizedSha256": "BF42EE59E70DB37765BDA50536EA6976D68CCA66725AA0D8589D90F11A3A4D12",
+      "localBaselineNormalizedSha256": "D24AEB6C5AFBD4CB22BFAF944712A28AC4E80C08D1BAA3942F5FFA61742B8951",
+      "sourceVerseNormalizedLength": 28,
+      "localBaselineNormalizedLength": 26,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 72,
+      "sourceVerseNormalizedSha256": "B9A4FE8C12ED978A2803B2AFA86AEEA19C8C1F9B1B93A6B5B1D9447638D88EBE",
+      "localBaselineNormalizedSha256": "E53AE7B5EB1347EAECA484934CE72F480FA1659B1BBB813584B8C7D69FEF751A",
+      "sourceVerseNormalizedLength": 45,
+      "localBaselineNormalizedLength": 45,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 73,
+      "sourceVerseNormalizedSha256": "74B66F83F4BF246F26591B099098EFD3AE3117AB32F30E8DD19881B9FD6E99C4",
+      "localBaselineNormalizedSha256": "B70C277816FCD9EFA6672D0385BB169F69B66B5CEF3FD84BEDC3672955A6EC18",
+      "sourceVerseNormalizedLength": 64,
+      "localBaselineNormalizedLength": 64,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 74,
+      "sourceVerseNormalizedSha256": "0ECC98709ACF9439944B36A3C8C4CF84803CC8C6995D9629D40353FF45B01B67",
+      "localBaselineNormalizedSha256": "1C60D3FD4B654F5C593B4CB3EC6503DEBADD602ED2802DD46DEE94137DDE7B40",
+      "sourceVerseNormalizedLength": 59,
+      "localBaselineNormalizedLength": 59,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 75,
+      "sourceVerseNormalizedSha256": "BA50CF91E704E416B9356DE483308D18061D11A89FAAA79D9A271B3CA44681AF",
+      "localBaselineNormalizedSha256": "881D9B963FA23CFA6F4D5CC39570555A82B912CB34615C324436956369DF1999",
+      "sourceVerseNormalizedLength": 54,
+      "localBaselineNormalizedLength": 54,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 76,
+      "sourceVerseNormalizedSha256": "E0B79470A7286D9D27A4BC6847DFFC4B9B4A12AC36C27CDB24195437E4CA8146",
+      "localBaselineNormalizedSha256": "3316901F3BBEB6D41C5EE6D368E0EC8889DD880B0E9B5CC67AA65F883250C9DC",
+      "sourceVerseNormalizedLength": 57,
+      "localBaselineNormalizedLength": 54,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 77,
+      "sourceVerseNormalizedSha256": "04C82A188D76371C97F8B418284895E71B930B4CBD7E82349372FC3A2178E616",
+      "localBaselineNormalizedSha256": "D3491E50DAFEDB37646F71AFE9A550242C78A0D2FFF1B510E6AC972B7114E253",
+      "sourceVerseNormalizedLength": 79,
+      "localBaselineNormalizedLength": 79,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 78,
+      "sourceVerseNormalizedSha256": "BE8109AF44E8A1E1A78BDA7C462F3CE0340190ECCDA2FA71CDD2CD567B06DD7D",
+      "localBaselineNormalizedSha256": "1A7974F0F8C77ECCA53BF5DAA8750C32907410AD6ADFA12FEF2FFC69600F44DB",
+      "sourceVerseNormalizedLength": 64,
+      "localBaselineNormalizedLength": 65,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 79,
+      "sourceVerseNormalizedSha256": "DE519834F4381BB64AE3F27B65F17219DC771C7898E4922463865E4911623B36",
+      "localBaselineNormalizedSha256": "856F21E1615F857A5D47CD9B47804287F5B67CBA549F1ED8102B91AC83929612",
+      "sourceVerseNormalizedLength": 40,
+      "localBaselineNormalizedLength": 40,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 80,
+      "sourceVerseNormalizedSha256": "62DD3968533D9AA408197E8C58CD1503E7C34BA4E770C458EF135379E23234C9",
+      "localBaselineNormalizedSha256": "D9D13C431F84833C8C2D0CB79FF46CF24F023940DEFBD0EF9B5519B52A59CFDC",
+      "sourceVerseNormalizedLength": 75,
+      "localBaselineNormalizedLength": 75,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    },
+    {
+      "chapter": 81,
+      "sourceVerseNormalizedSha256": "AB4471814F7816567C7E527D33BFB2A0C6A25370BC2E062B92FC82752D342DD1",
+      "localBaselineNormalizedSha256": "BD813865E02BDEF151A952FD20D5742212E67DD5EA3B73DB3C30924D8979947E",
+      "sourceVerseNormalizedLength": 57,
+      "localBaselineNormalizedLength": 57,
+      "normalizedEqual": false,
+      "difference": "non_identical_pending_independent_content_review",
+      "review": "pending_independent_content_review"
+    }
+  ]
+}

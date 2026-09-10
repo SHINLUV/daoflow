@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import type { ApiError, Favorite, Page } from '@/lib/journal/contracts'
 import { createFavoriteOwnerCoordinator } from '@/lib/journal/favorites'
-import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
+import { AUTH_SYNC_STORAGE_KEY, csrfFetch, getAuthSession } from '@/lib/auth/browser'
 import { isOwnerEpochCurrent, nextOwnerEpoch, type OwnerEpoch } from '@/lib/journal/ask-requests'
 import styles from './reading.module.css'
 
@@ -11,7 +11,6 @@ type FavoriteControlsProps = { chapterId: number; originalText: string }
 type Notice = { kind: 'success' | 'error' | 'info'; text: string } | null
 
 export function FavoriteControls({ chapterId, originalText }: FavoriteControlsProps) {
-  const [supabase] = useState(() => createClient())
   const ownerEpochRef = useRef<OwnerEpoch>({ ownerId: null, epoch: 0 })
   const controllersRef = useRef(new Set<AbortController>())
   const [favorites, setFavorites] = useState<Favorite[]>([])
@@ -55,7 +54,6 @@ export function FavoriteControls({ chapterId, originalText }: FavoriteControlsPr
   }, [beginOperation, chapterId, endOperation, isCurrentOperation])
 
   useEffect(() => {
-    if (!isSupabaseConfigured) { void loadFavorites(); return }
     let active = true
     const controllers = controllersRef.current
     const changeOwner = (nextOwner: string | null) => {
@@ -69,16 +67,13 @@ export function FavoriteControls({ chapterId, originalText }: FavoriteControlsPr
       return true
     }
     const ownerCoordinator = createFavoriteOwnerCoordinator(changeOwner, () => { if (active) void loadFavorites() })
-    void supabase.auth.getUser().then(({ data }) => {
-      ownerCoordinator.resolveGetUser(data.user?.id ?? null)
-    }).catch(() => {
-      ownerCoordinator.resolveGetUser(null)
-    })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      ownerCoordinator.observe(session?.user?.id ?? null)
-    })
-    return () => { active = false; controllers.forEach(controller => controller.abort()); controllers.clear(); subscription.unsubscribe() }
-  }, [loadFavorites, supabase])
+    const refresh = () => { void getAuthSession().then(session => ownerCoordinator.observe(session.user?.id ?? null)).catch(() => ownerCoordinator.observe(null)) }
+    refresh()
+    const onFocus = () => refresh()
+    const onStorage = (event: StorageEvent) => { if (event.key === AUTH_SYNC_STORAGE_KEY) refresh() }
+    window.addEventListener('focus', onFocus); window.addEventListener('storage', onStorage)
+    return () => { active = false; controllers.forEach(controller => controller.abort()); controllers.clear(); window.removeEventListener('focus', onFocus); window.removeEventListener('storage', onStorage) }
+  }, [loadFavorites])
 
   async function createFavorite(excerpt: string) {
     if (!excerpt || !originalText.includes(excerpt)) {
@@ -88,7 +83,7 @@ export function FavoriteControls({ chapterId, originalText }: FavoriteControlsPr
     const operation = beginOperation()
     setPending(true)
     try {
-      const response = await fetch('/api/journal/favorites', {
+      const response = await csrfFetch('/api/journal/favorites', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ id: crypto.randomUUID(), chapterId, excerpt, note: null }), signal: operation.controller.signal,
@@ -125,7 +120,7 @@ export function FavoriteControls({ chapterId, originalText }: FavoriteControlsPr
     if (!editing) return
     const operation = beginOperation(); setPending(true)
     try {
-      const response = await fetch(`/api/journal/favorites/${editing.id}`, {
+      const response = await csrfFetch(`/api/journal/favorites/${editing.id}`, {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ version: editing.version, note: note || null }), signal: operation.controller.signal,
@@ -151,7 +146,7 @@ export function FavoriteControls({ chapterId, originalText }: FavoriteControlsPr
   async function removeFavorite(favorite: Favorite) {
     const operation = beginOperation(); setPending(true)
     try {
-      const response = await fetch(`/api/journal/favorites/${favorite.id}`, {
+      const response = await csrfFetch(`/api/journal/favorites/${favorite.id}`, {
         method: 'DELETE',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ version: favorite.version }), signal: operation.controller.signal,

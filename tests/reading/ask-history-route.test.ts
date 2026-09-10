@@ -5,6 +5,7 @@ const { eqMock, maybeSingleMock } = vi.hoisted(() => ({ eqMock: vi.fn(), maybeSi
 
 vi.mock('@/lib/journal/ask-requests', async () => import('../../src/lib/journal/ask-requests'))
 vi.mock('@/lib/chapters', () => ({ getLocalChapter: () => ({ original_text: '上善若水。' }) }))
+vi.mock('@/lib/ask-worker/answerResponse', () => ({ storedAnswerSnapshot: () => null }))
 vi.mock('@/lib/supabase/server', () => ({
   isSupabaseConfigured: true,
   createClient: () => {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/server'
+import { verifyMutationRequest } from '@/lib/auth/http'
 import { parseVolumeId, parseVolumePatch, toVolume } from '@/lib/journal/volumes'
 
 const columns = 'id,title,archived_at,version,created_at,updated_at'
@@ -33,6 +34,8 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const requestId = crypto.randomUUID()
+  const security = verifyMutationRequest(request)
+  if (!security.ok) return fail(403, security.code, security.message, requestId)
   const parsed = valid(params, requestId)
   if ('response' in parsed) return parsed.response
   const context = await auth(requestId)

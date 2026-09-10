@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { getSupabaseCookieName } from '@/lib/supabase/storage-key'
+import { authCookieName } from '@/lib/auth/bff'
+import { noStoreHeaders } from '@/lib/auth/http'
 
 /**
  * Supabase Auth 中间件
@@ -8,7 +9,7 @@ import { getSupabaseCookieName } from '@/lib/supabase/storage-key'
  */
 export async function middleware(request: NextRequest) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return NextResponse.next({ request })
+    return privateNoStore(request, NextResponse.next({ request }))
   }
 
   let supabaseResponse = NextResponse.next({ request })
@@ -17,7 +18,7 @@ export async function middleware(request: NextRequest) {
     process.env.SUPABASE_INTERNAL_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      cookieOptions: { name: getSupabaseCookieName(process.env.NEXT_PUBLIC_SUPABASE_URL) },
+      cookieOptions: { name: authCookieName() },
       cookies: {
         getAll() {
           return request.cookies.getAll()
@@ -38,7 +39,16 @@ export async function middleware(request: NextRequest) {
   // 刷新 session（不阻塞请求，静默处理失败）
   await supabase.auth.getUser()
 
-  return supabaseResponse
+  return privateNoStore(request, supabaseResponse)
+}
+
+function privateNoStore(request: NextRequest, response: NextResponse): NextResponse {
+  const path = request.nextUrl.pathname
+  if (path === '/ask' || path === '/my-dao' || path.startsWith('/auth/') || path.startsWith('/journal')
+    || path.startsWith('/api/auth/') || path.startsWith('/api/journal/') || path.startsWith('/api/me/') || path.startsWith('/api/ask')) {
+    for (const [name, value] of Object.entries(noStoreHeaders())) response.headers.set(name, value)
+  }
+  return response
 }
 
 export const config = {

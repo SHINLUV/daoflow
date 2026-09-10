@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/server'
+import { verifyMutationRequest } from '@/lib/auth/http'
 import { EntryInputError, mapEntry, parseEntryId, parsePatchEntry, parsePurgeVersion, patchPayloadForRpc } from '@/lib/journal/entries'
 import type { ApiError } from '@/lib/journal/contracts'
 
@@ -42,7 +43,7 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
-  const id = requestId(); const validated = pathId(params, id); if ('response' in validated) return validated.response
+  const id = requestId(); const security = verifyMutationRequest(request); if (!security.ok) return fail(403, security.code, security.message, id); const validated = pathId(params, id); if ('response' in validated) return validated.response
   const auth = await context(id); if ('response' in auth) return auth.response
   let patch
   try { patch = parsePatchEntry(await request.json()) } catch (error) { return inputError(error, id) }
@@ -60,7 +61,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  const id = requestId(); const validated = pathId(params, id); if ('response' in validated) return validated.response
+  const id = requestId(); const security = verifyMutationRequest(request); if (!security.ok) return fail(403, security.code, security.message, id); const validated = pathId(params, id); if ('response' in validated) return validated.response
   const auth = await context(id); if ('response' in auth) return auth.response
   let version
   try { version = parsePurgeVersion(await request.json()) } catch (error) { return inputError(error, id) }

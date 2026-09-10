@@ -21,6 +21,7 @@ describe('ask request protocol (database-free)', () => {
     expect(parsed.question).toBe('我应如何处理这段关系？')
     expect(() => parseAskInput({ question: 'x'.repeat(501) })).toThrow(AskInputError)
     expect(() => parseAskInput({ question: '问题', sourceEntryId: 'not-a-uuid' })).toThrow(AskInputError)
+    expect(() => parseAskInput({ question: '问题', provider: 'agnes', systemPrompt: 'ignored' })).toThrow(AskInputError)
   })
 
   it('accepts only complete server-generated result snapshots', () => {
@@ -97,7 +98,7 @@ describe.skipIf(!live)('ask persistence with real Auth/RLS/RPC [LIVE LOCAL]', ()
     const counterUrl = requiredEnv('DAOFLOW_LIVE_MODEL_COUNTER_URL')
     const before = await readInvocationCount(counterUrl)
     const response = await fetch(`${baseUrl}/api/ask`, {
-      method: 'POST', headers: { 'content-type': 'application/json', cookie: cookieA },
+      method: 'POST', headers: mutationHeaders(baseUrl, cookieA),
       body: JSON.stringify({ question: '跨账户来源必须被拒绝', requestId: crypto.randomUUID(), sourceEntryId: foreignSourceId }),
     })
     expect(response.status).toBe(404)
@@ -109,7 +110,7 @@ describe.skipIf(!live)('ask persistence with real Auth/RLS/RPC [LIVE LOCAL]', ()
     const cookieA = requiredEnv('DAOFLOW_LIVE_COOKIE_A')
     const requestId = crypto.randomUUID()
     const post = (question: string) => fetch(`${baseUrl}/api/ask`, {
-      method: 'POST', headers: { 'content-type': 'application/json', cookie: cookieA }, body: JSON.stringify({ question, requestId }),
+      method: 'POST', headers: mutationHeaders(baseUrl, cookieA), body: JSON.stringify({ question, requestId }),
     })
     const first = post('同一个问题只应生成一次')
     const [replay, conflict, initial] = await Promise.all([post('同一个问题只应生成一次'), post('冲突问题'), first])
@@ -123,7 +124,7 @@ describe.skipIf(!live)('ask persistence with real Auth/RLS/RPC [LIVE LOCAL]', ()
     const generatedRequestId = requiredEnv('DAOFLOW_LIVE_GENERATED_REQUEST_ID')
     const counterUrl = requiredEnv('DAOFLOW_LIVE_MODEL_COUNTER_URL')
     const before = await readInvocationCount(counterUrl)
-    const save = () => fetch(`${baseUrl}/api/journal/ask-requests/${generatedRequestId}/retry-save`, { method: 'POST', headers: { cookie: cookieA } })
+    const save = () => fetch(`${baseUrl}/api/journal/ask-requests/${generatedRequestId}/retry-save`, { method: 'POST', headers: mutationHeaders(baseUrl, cookieA, false) })
     const first = await save(); const firstBody = await first.json()
     const second = await save(); const secondBody = await second.json()
     expect(first.status).toBe(200); expect(second.status).toBe(200)
@@ -162,6 +163,22 @@ function requiredEnv(name: string): string {
   const value = process.env[name]
   if (!value) throw new Error(`${name} is required when DAOFLOW_LIVE_LOCAL_ASK=1`)
   return value
+}
+
+/**
+ * This opt-in test intentionally crosses the public BFF boundary. It carries
+ * the same Origin and double-submit CSRF proof as the browser, so a 403 cannot
+ * be mistaken for an RLS result.
+ */
+function mutationHeaders(baseUrl: string, authCookie: string, contentType = true): Record<string, string> {
+  const csrf = requiredEnv('DAOFLOW_LIVE_CSRF_A')
+  const csrfCookieName = process.env.DAOFLOW_LIVE_CSRF_COOKIE_NAME ?? 'daoflow-dev-csrf'
+  return {
+    ...(contentType ? { 'content-type': 'application/json' } : {}),
+    cookie: `${authCookie}; ${csrfCookieName}=${csrf}`,
+    origin: new URL(baseUrl).origin,
+    'x-daoflow-csrf': csrf,
+  }
 }
 
 async function readInvocationCount(url: string): Promise<number> {
