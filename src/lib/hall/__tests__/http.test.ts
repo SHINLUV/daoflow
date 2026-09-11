@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { NextRequest } from 'next/server'
-import { requireHallMutationProtection } from '../http'
+import { hallJson, requireHallMutationProtection } from '../http'
 
 describe('hall mutation request protection', () => {
   it('rejects a mutation that lacks an exact same-origin and CSRF proof', () => {
@@ -15,5 +15,11 @@ describe('hall mutation request protection', () => {
     })
     request.headers.set('origin', request.nextUrl.origin)
     expect(requireHallMutationProtection(request)).toBeNull()
+  })
+
+  it('marks every hall JSON response no-store and noindex, including public reads', () => {
+    const response = hallJson({ items: [] })
+    expect(response.headers.get('cache-control')).toBe('no-store, max-age=0')
+    expect(response.headers.get('x-robots-tag')).toBe('noindex, nofollow')
   })
 })

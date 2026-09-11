@@ -149,6 +149,11 @@ async function rpc(client: RpcClient, name: string, args: Record<string, unknown
 function classifyError(error: unknown): HallServiceError {
   const record = isRecord(error) ? error : {}
   const code = typeof record.code === 'string' ? record.code : ''
+  const message = typeof record.message === 'string' ? record.message : ''
+  if (code === '22023') return new HallServiceError(400, 'INVALID_INPUT', '请求参数无效。')
+  if (code === 'P0001' && message === 'IDEMPOTENCY_CONFLICT') {
+    return new HallServiceError(409, 'IDEMPOTENCY_CONFLICT', '该请求已用于另一条分享，请刷新后重试。')
+  }
   if (code === 'P0002') return new HallServiceError(404, 'NOT_FOUND', '目标不存在或你没有权限访问。')
   if (code === 'P0003') return new HallServiceError(409, 'VERSION_CONFLICT', '内容已被更新，请刷新后重试。')
   if (code === 'P0004') return new HallServiceError(403, 'REVIEWER_REQUIRED', '此操作需要已启用 MFA 的审核权限。')
