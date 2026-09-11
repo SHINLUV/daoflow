@@ -26,4 +26,39 @@ describe('persistent ask worker domain tick', () => {
     expect(db.completeGenerated).not.toHaveBeenCalled()
     expect(db.markFailed).toHaveBeenCalledWith(expect.objectContaining({ requestId: 'r-1' }), expect.objectContaining({ code: 'timeout' }))
   })
+
+  it('heartbeats a claimed lease using its claim token and generation before completion', async () => {
+    const db = gateway()
+    const calls: string[] = []
+    const generationResult = { kind: 'insufficient_evidence' as const, provider: 'none' as const, model: null, degraded: false as const, answer, corpusVersion: null, promptVersion: 'dao-answer-v2.1' as const, attempts: [], reason: 'CORPUS_NOT_ELIGIBLE' }
+    let releaseGeneration!: () => void
+    const pendingGeneration = new Promise<typeof generationResult>(resolve => {
+      releaseGeneration = () => resolve(generationResult)
+    })
+    db.heartbeat = vi.fn().mockImplementation(async claimedJob => {
+      calls.push('heartbeat')
+      expect(claimedJob).toMatchObject({ claimToken: 'claim', generation: 1 })
+      releaseGeneration()
+      return true
+    })
+    db.completeGenerated = vi.fn().mockImplementation(async () => {
+      calls.push('complete')
+      return 'generated'
+    })
+    db.saveGenerated = vi.fn().mockImplementation(async () => {
+      calls.push('save')
+      return 'saved'
+    })
+
+    const result = await runAskWorkerOnce('worker-a', {
+      gateway: db,
+      heartbeatMs: 1,
+      leaseSeconds: 75,
+      generate: () => pendingGeneration,
+    })
+    expect(result).toEqual({ kind: 'saved', requestId: 'r-1' })
+    expect(db.heartbeat).toHaveBeenCalledWith(expect.objectContaining({ claimToken: 'claim', generation: 1 }), 75)
+    expect(db.completeGenerated).toHaveBeenCalledWith(expect.objectContaining({ claimToken: 'claim', generation: 1 }), expect.objectContaining({ schemaVersion: 2 }))
+    expect(calls).toEqual(['heartbeat', 'complete', 'save'])
+  })
 })

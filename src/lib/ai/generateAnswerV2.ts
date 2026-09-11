@@ -213,7 +213,15 @@ function retryDelayMilliseconds(kind: AgnesFailureKind, retryAfter: number | nul
 }
 
 function httpStatus(error: unknown): number | undefined {
-  return typeof error === 'object' && error !== null && 'statusCode' in error && typeof error.statusCode === 'number'
-    ? error.statusCode
-    : undefined
+  if (typeof error !== 'object' || error === null) return undefined
+  const candidates = [
+    'statusCode' in error ? error.statusCode : undefined,
+    'status' in error ? error.status : undefined,
+  ]
+  return candidates.find((candidate): candidate is number => (
+    typeof candidate === 'number'
+    && Number.isInteger(candidate)
+    && candidate >= 100
+    && candidate <= 599
+  ))
 }
