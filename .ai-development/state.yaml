@@ -18,12 +18,12 @@ current_task:
     id: "AUTH_HALL_RAG_DELTA",
     description: "实现新增私人账户、同道大厅、可信经典 RAG、Agnes answer_v2 与问道输入框；旧技术验收不覆盖该增量",
     owner: "Delivery controller",
-    status: INDEPENDENT_REACCEPTANCE_BLOCKED_EXTERNAL_RUNTIME,
+    status: INDEPENDENT_REACCEPTANCE_R3_BLOCKED_EXTERNAL_RUNTIME,
   }
 execution_status: AUTH_HALL_RAG_ENGINEERING_VERIFICATION
 starting_commit: f3aa69376edd11b0895c8e58fe58274012fa9a1f
-current_commit: f4d0a4a3697ec1ebf3603f2796e4bcebd2cec0bc
-last_verified_commit: f4d0a4a3697ec1ebf3603f2796e4bcebd2cec0bc
+current_commit: 6e21b179bc6bf0a0560618df2df9fd6e1a365166
+last_verified_commit: 6e21b179bc6bf0a0560618df2df9fd6e1a365166
 gate_status:
   prd_complete: PASS
   prd_review: PASS
@@ -45,6 +45,7 @@ blockers:
   - "TWO_USER_RLS_HALL_REQUIRED：私人数据双 JWT 隔离、跨标签退出、大厅作者/他人/审核角色和注销级联尚无真实浏览器运行证据。"
   - "BUSINESS_UAT_PENDING：真实业务用户仍需自行确认其内容、流程和商业可用性；技术验收不代签。"
   - "真实用户业务UAT、生产部署和远程生产迁移均不在本轮范围。"
+  - "R3_LOCAL_RUNTIME_REMEDIATION=PASS_LIMITED：前向新增迁移、Hall最小授权与无跳页、standalone静态资产和局部输入框可达性均有本地证据；完整浏览器E2E未取得可记录退出码，不能外推为认证、RLS、Agnes、worker或UAT通过。"
 artifacts:
   auth_hall_rag_solution:
     {
@@ -89,6 +90,16 @@ artifacts:
   auth_hall_rag_independent_reacceptance_r2:
     {
       path: docs/redesign-v2/reviews/ah-p0-independent-reacceptance-r2.md,
+      status: BLOCKED_EXTERNAL_RUNTIME,
+    }
+  auth_hall_rag_runtime_gate_verification_r3:
+    {
+      path: docs/redesign-v2/evidence/AH-P0/6e21b17/runtime-gate-verification.md,
+      status: PASS_LOCAL_REMEDIATION_EXTERNAL_RUNTIME_BLOCKED,
+    }
+  auth_hall_rag_independent_reacceptance_r3:
+    {
+      path: docs/redesign-v2/reviews/ah-p0-runtime-gates-independent-acceptance-r3.md,
       status: BLOCKED_EXTERNAL_RUNTIME,
     }
   dao_corpus_manifest:
@@ -143,7 +154,7 @@ verification:
     {
       status: PASS,
       evidence:
-        [docs/redesign-v2/evidence/AH-P0/615c53b/engineering-verification.md],
+        [docs/redesign-v2/evidence/AH-P0/615c53b/engineering-verification.md, docs/redesign-v2/evidence/AH-P0/6e21b17/runtime-gate-verification.md],
     }
   integration:
     {
@@ -159,15 +170,15 @@ verification:
     }
   e2e:
     {
-      status: PASS_WITH_EXTERNAL_BLOCKERS,
+      status: BLOCKED_NO_RECORDED_RUNTIME_EXIT,
       evidence:
-        [docs/redesign-v2/evidence/AH-P0/615c53b/engineering-verification.md],
+        [docs/redesign-v2/evidence/AH-P0/6e21b17/runtime-gate-verification.md, docs/redesign-v2/reviews/ah-p0-runtime-gates-independent-acceptance-r3.md],
     }
   runtime:
     {
       status: BLOCKED,
       evidence:
-        [docs/redesign-v2/evidence/AH-P0/615c53b/engineering-verification.md],
+        [docs/redesign-v2/evidence/AH-P0/615c53b/engineering-verification.md, docs/redesign-v2/evidence/AH-P0/6e21b17/runtime-gate-verification.md],
     }
   independent_acceptance:
     {
@@ -176,13 +187,14 @@ verification:
         [
           docs/redesign-v2/reviews/ah-p0-independent-acceptance.md,
           docs/redesign-v2/reviews/ah-p0-independent-reacceptance-r2.md,
+          docs/redesign-v2/reviews/ah-p0-runtime-gates-independent-acceptance-r3.md,
         ],
     }
   uat: { status: NOT_EXECUTED, evidence: [] }
 independent_review:
   status: BLOCKED
-  report: docs/redesign-v2/reviews/ah-p0-independent-reacceptance-r2.md
-  note: "615c53b 的独立验收 FAIL 已保留；f4d0a4a 修复 IA-01 至 IA-04 后，R2 独立复验关闭本地缺陷，但真实外部运行时证据仍 BLOCKED。"
+  report: docs/redesign-v2/reviews/ah-p0-runtime-gates-independent-acceptance-r3.md
+  note: "R3 独立验收确认本地 Hall 授权/分页修复；真实认证、RLS、可信语料、Agnes、worker、全浏览器E2E、攻击/质量集与UAT仍 BLOCKED，不能发布。"
 visual_polish:
   status: PASS
   candidate: 0a96cbf4ce98c2116ab8812495ce93f0a21bb0fa
@@ -192,6 +204,16 @@ visual_polish:
   visual_score: 92
   note: "本轮限定展示范围通过，不替代上述T09全产品验收记录；真实服务BLOCKED和BUSINESS_UAT_PENDING保持。"
 history:
+  - {
+      event: AUTH_HALL_RAG_RUNTIME_GATE_REMEDIATION_R3,
+      result: BLOCKED,
+      reviewer: independent_runtime_acceptance_r3,
+      candidate: 6e21b179bc6bf0a0560618df2df9fd6e1a365166,
+      commits: [2eedf62, 64e208a, 6e21b17],
+      evidence: docs/redesign-v2/evidence/AH-P0/6e21b17/runtime-gate-verification.md,
+      report: docs/redesign-v2/reviews/ah-p0-runtime-gates-independent-acceptance-r3.md,
+      note: "前向迁移关闭 Hall helper PUBLIC EXECUTE 并修复 published cursor；本地 standalone 资源和局部输入框可达。独立验收未将跳过/未记录退出码的E2E、真实认证/RLS/Agnes/worker/可信语料/UAT计为通过。",
+    }
   - {
       event: AUTH_HALL_RAG_INDEPENDENT_REACCEPTANCE_R2,
       result: BLOCKED,
