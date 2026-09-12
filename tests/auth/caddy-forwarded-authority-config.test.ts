@@ -16,4 +16,10 @@ describe('Caddy forwarded-authority provenance', () => {
       expect(caddyfile).not.toContain(`header_up -X-Forwarded-${header}`)
     }
   })
+
+  it('uses Caddy request metadata rather than a client-controlled Host header in production', () => {
+    const caddyfile = readFileSync(resolve(process.cwd(), 'ops/production/Caddyfile.daoflow'), 'utf8')
+    expect(caddyfile).toContain('header_up X-Forwarded-Host {http.request.host}')
+    expect(caddyfile).not.toContain('{http.request.header.Host}')
+  })
 })

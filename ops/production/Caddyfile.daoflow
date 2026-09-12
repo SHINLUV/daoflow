@@ -29,7 +29,7 @@ dao.shinluv.cloud, tanfeng.shinluv.cloud {
             # process-only attestation.
             header_up X-Daoflow-Client-Ip {remote_host}
             header_up X-Daoflow-Proxy-Attestation {$DAOFLOW_PROXY_ATTESTATION_SECRET}
-            header_up X-Forwarded-Host {http.request.header.Host}
+            header_up X-Forwarded-Host {http.request.host}
             header_up X-Forwarded-Proto {http.request.scheme}
             header_up X-Real-IP {remote_host}
         }

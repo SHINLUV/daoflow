@@ -214,9 +214,15 @@ services:
       - -ec
       - |
         while true; do
-          node -e "fetch('http://app:3000/api/internal/ask-worker',{method:'POST',headers:{'x-daoflow-worker-token':process.env.DAOFLOW_ASK_WORKER_TOKEN || ''}}).then(r=>{if(!r.ok)process.exitCode=1}).catch(()=>{process.exitCode=1})" || true
+          node -e "fetch('http://app:3000/api/internal/ask-worker',{method:'POST',headers:{'x-daoflow-worker-token':process.env.DAOFLOW_ASK_WORKER_TOKEN || ''}}).then(r=>{if(!r.ok)throw new Error('worker tick rejected');require('fs').writeFileSync('/tmp/ask-worker-heartbeat',String(Date.now()))}).catch(()=>{process.exitCode=1})" || true
           sleep 1
         done
+    healthcheck:
+      test: ["CMD", "node", "-e", "const age=Date.now()-require('fs').statSync('/tmp/ask-worker-heartbeat').mtimeMs;process.exit(age<15000?0:1)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
     init: true
     mem_limit: 256m
     cap_drop:
