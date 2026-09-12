@@ -20,7 +20,8 @@ export async function retrieveApprovedLexically(
   if (policy.eligibility === 'configuration_error') {
     return { kind: 'configuration_error', corpusVersion: policy.corpusVersion, reason: policy.reason }
   }
-  if (policy.eligibility !== 'eligible' || !policy.corpusVersion) {
+  const corpusVersion = policy.corpusVersion
+  if (policy.eligibility !== 'eligible' || !corpusVersion) {
     return { kind: 'insufficient_evidence', corpusVersion: policy.corpusVersion, reason: 'CORPUS_NOT_ELIGIBLE' }
   }
 
@@ -28,21 +29,68 @@ export async function retrieveApprovedLexically(
   if (tokens.length === 0) {
     return { kind: 'insufficient_evidence', corpusVersion: policy.corpusVersion, reason: 'NO_APPROVED_EVIDENCE' }
   }
-  const chunks = await repository.listChunksForLexicalRetrieval(policy.corpusVersion)
+  const chunks = await repository.listChunksForLexicalRetrieval(corpusVersion)
   const ranked = chunks
-    .filter(chunk => chunk.reviewStatus === 'approved' && chunk.corpusVersion === policy.corpusVersion)
+    .filter(chunk => isUsableApprovedChunk(chunk, corpusVersion))
     .map(chunk => ({ chunk, score: lexicalScore(tokens, chunk) }))
     .filter(item => item.score > 0)
     .sort((left, right) => right.score - left.score || left.chunk.chapter - right.chunk.chapter || left.chunk.chunkId.localeCompare(right.chunk.chunkId))
 
   const selected = diversitySelect(ranked, Math.min(Math.max(limit, 1), 5))
   if (selected.length === 0) {
-    return { kind: 'insufficient_evidence', corpusVersion: policy.corpusVersion, reason: 'NO_APPROVED_EVIDENCE' }
+    return { kind: 'insufficient_evidence', corpusVersion, reason: 'NO_APPROVED_EVIDENCE' }
   }
   return {
     kind: 'evidence',
-    corpusVersion: policy.corpusVersion,
+    corpusVersion,
     evidence: selected.map(({ chunk, score }) => toEvidence(chunk, score)),
+  }
+}
+
+/**
+ * Database constraints are the primary protection, but retrieval fails closed
+ * again at this boundary so a malformed adapter row cannot become model
+ * evidence merely because it claims `approved`.
+ */
+function isUsableApprovedChunk(value: unknown, corpusVersion: string): value is CorpusChunkRecord {
+  if (!record(value)) return false
+  const chunk = value as Partial<CorpusChunkRecord>
+  return chunk.reviewStatus === 'approved'
+    && typeof chunk.corpusVersion === 'string'
+    && chunk.corpusVersion === corpusVersion
+    && typeof chunk.chunkId === 'string'
+    && /^[A-Za-z0-9._:-]{1,160}$/.test(chunk.chunkId)
+    && typeof chunk.chapter === 'number'
+    && Number.isInteger(chunk.chapter)
+    && chunk.chapter >= 1
+    && chunk.chapter <= 81
+    && (chunk.paragraph === null || (typeof chunk.paragraph === 'number' && Number.isInteger(chunk.paragraph) && chunk.paragraph >= 1))
+    && typeof chunk.text === 'string'
+    && chunk.text.trim().length > 0
+    && typeof chunk.edition === 'string'
+    && chunk.edition.trim().length > 0
+    && (chunk.kind === 'original' || chunk.kind === 'translation' || chunk.kind === 'annotation')
+    && typeof chunk.sourceRevision === 'string'
+    && chunk.sourceRevision.trim().length > 0
+    && typeof chunk.sourceUrl === 'string'
+    && isSafeHttpsSourceUrl(chunk.sourceUrl)
+    && typeof chunk.license === 'string'
+    && chunk.license.trim().length > 0
+    && chunk.license.trim().toLowerCase() !== 'unknown'
+    && Array.isArray(chunk.themeTerms)
+    && chunk.themeTerms.every(term => typeof term === 'string' && term.trim().length > 0)
+}
+
+function record(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function isSafeHttpsSourceUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' && url.hostname.length > 0 && url.username === '' && url.password === ''
+  } catch {
+    return false
   }
 }
 

@@ -3,12 +3,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { isProduction } from './http'
 import { transactionCookieName } from './bff'
 import { safeNext } from './safeNext'
+import { runtimeEnv } from '../runtime-env'
 
 type AuthTransactionPurpose = 'signup' | 'recovery'
 type AuthTransaction = { nonce: string; purpose: AuthTransactionPurpose; next: string; expiresAt: number }
 
 function transactionSecret(): string | null {
-  const value = process.env.DAOFLOW_AUTH_TRANSACTION_SECRET
+  const value = runtimeEnv('DAOFLOW_AUTH_TRANSACTION_SECRET')
   return value && value.length >= 32 ? value : null
 }
 
@@ -43,13 +44,13 @@ export function startAuthTransaction(request: NextRequest, response: NextRespons
   const secret = transactionSecret()
   if (!secret) return null
   const transaction: AuthTransaction = { nonce: crypto.randomUUID(), purpose, next: safeNext(next), expiresAt: Date.now() + 15 * 60 * 1000 }
-  response.cookies.set({ name: transactionCookieName(), value: encode(transaction, secret), httpOnly: true, secure: isProduction(), sameSite: 'lax', path: '/', maxAge: 15 * 60 })
+  response.cookies.set({ name: transactionCookieName(request), value: encode(transaction, secret), httpOnly: true, secure: isProduction(request), sameSite: 'lax', path: '/', maxAge: 15 * 60 })
   return { nonce: transaction.nonce }
 }
 
 export function verifyAuthTransaction(request: NextRequest, nonce: string | null): AuthTransaction | null {
   const secret = transactionSecret()
   if (!secret || !nonce) return null
-  const transaction = decode(request.cookies.get(transactionCookieName())?.value, secret)
+  const transaction = decode(request.cookies.get(transactionCookieName(request))?.value, secret)
   return transaction && transaction.nonce === nonce ? transaction : null
 }

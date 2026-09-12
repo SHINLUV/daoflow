@@ -2,6 +2,7 @@ import { createClient as createServiceClient, type SupabaseClient } from '@supab
 import type { NextRequest } from 'next/server'
 import { generateDaoAnswerV2, type AgnesAttempt } from '@/lib/ai/generateAnswerV2'
 import { anonymousAiIpSubject } from '@/lib/auth/rateLimit'
+import { runtimeEnv } from '../runtime-env'
 import type { CorpusChunkRecord, CorpusRuntimePolicy, ApprovedCorpusRepository } from '@/lib/rag/types'
 import {
   runAskWorkerOnce,
@@ -14,7 +15,7 @@ import {
 type Json = Record<string, unknown>
 
 export function hasAskWorkerConfiguration(): boolean {
-  const configuredWorkerId = process.env.DAOFLOW_ASK_WORKER_ID
+  const configuredWorkerId = runtimeEnv('DAOFLOW_ASK_WORKER_ID')
   return Boolean((process.env.SUPABASE_INTERNAL_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL)
     && process.env.SUPABASE_SERVICE_ROLE_KEY
     && (!configuredWorkerId || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(configuredWorkerId)))
@@ -22,11 +23,12 @@ export function hasAskWorkerConfiguration(): boolean {
 
 /** The public queue is unavailable until its separately deployed runner can authenticate back to this app. */
 export function hasAskWorkerRunnerConfiguration(): boolean {
-  return hasAskWorkerConfiguration() && Boolean(process.env.DAOFLOW_ASK_WORKER_TOKEN && process.env.DAOFLOW_ASK_WORKER_TOKEN.length >= 32)
+  const workerToken = runtimeEnv('DAOFLOW_ASK_WORKER_TOKEN')
+  return hasAskWorkerConfiguration() && Boolean(workerToken && workerToken.length >= 32)
 }
 
 export function workerIdentifier(): string {
-  return process.env.DAOFLOW_ASK_WORKER_ID || crypto.randomUUID()
+  return runtimeEnv('DAOFLOW_ASK_WORKER_ID') || crypto.randomUUID()
 }
 
 export function createConfiguredCorpusRepository(): ApprovedCorpusRepository | null {
@@ -67,7 +69,7 @@ function serviceClient(): SupabaseClient | null {
 }
 
 export function createCorpusRepository(client: SupabaseClient): ApprovedCorpusRepository {
-  const corpusVersion = process.env.DAOFLOW_CORPUS_VERSION ?? 'dao-de-jing-wang-bi-v1'
+  const corpusVersion = runtimeEnv('DAOFLOW_CORPUS_VERSION') ?? 'dao-de-jing-wang-bi-v1'
   return {
     async getRuntimePolicy(): Promise<CorpusRuntimePolicy> {
       const { data, error } = await client.from('dao_corpus_versions')

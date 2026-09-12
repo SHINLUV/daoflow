@@ -1,5 +1,6 @@
 import { timingSafeEqual } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
+import { browserOrigin, csrfCookieName } from '../auth/http'
 import { HallInputError } from './contracts'
 
 export const HALL_CACHE_HEADERS = {
@@ -38,10 +39,9 @@ export async function readJson(request: NextRequest): Promise<unknown> {
 
 export function requireHallMutationProtection(request: NextRequest): HallHttpError | null {
   const origin = request.headers.get('origin')
-  if (!origin || origin !== request.nextUrl.origin) return { status: 403, code: 'ORIGIN_REJECTED', message: '请求来源未获允许。' }
+  if (!origin || origin !== browserOrigin(request)) return { status: 403, code: 'ORIGIN_REJECTED', message: '请求来源未获允许。' }
 
-  const csrfCookieName = process.env.NODE_ENV === 'production' ? '__Host-daoflow-csrf' : 'daoflow-dev-csrf'
-  const csrfCookie = request.cookies.get(csrfCookieName)?.value
+  const csrfCookie = request.cookies.get(csrfCookieName(request))?.value
   const csrfHeader = request.headers.get('x-daoflow-csrf')
   if (!csrfCookie || !csrfHeader || !safeEqual(csrfCookie, csrfHeader)) return { status: 403, code: 'CSRF_REQUIRED', message: '请刷新页面后重试。' }
   return null

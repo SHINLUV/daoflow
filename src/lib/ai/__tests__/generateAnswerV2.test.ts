@@ -40,6 +40,14 @@ describe('v2 Agnes generation', () => {
     expect(callAgnes).toHaveBeenCalledTimes(1)
   })
 
+  it('classifies a statusCode-only authorization failure without retrying', async () => {
+    const callAgnes = vi.fn().mockRejectedValue(Object.assign(new Error('no access'), { statusCode: 403 }))
+    const result = await generateDaoAnswerV2('我不知道怎样说边界', { corpusRepository: approvedRepository, callAgnes })
+    expect(result).toMatchObject({ kind: 'unavailable', provider: 'none', failureKind: 'forbidden' })
+    expect(result.attempts.map(attempt => attempt.httpStatus)).toEqual([403])
+    expect(callAgnes).toHaveBeenCalledTimes(1)
+  })
+
   it('retains an upstream HTTP status in redacted attempts', async () => {
     const callAgnes = vi.fn().mockRejectedValue(Object.assign(new Error('too many requests'), { status: 429 }))
     const sleep = vi.fn().mockResolvedValue(undefined)

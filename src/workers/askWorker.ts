@@ -65,16 +65,30 @@ export async function runAskWorkerOnce(workerId: string, dependencies: AskWorker
   if (!job) return { kind: 'idle' }
 
   let heartbeatStopped = false
+  let heartbeatInFlight: Promise<void> | null = null
   const interval = setInterval(() => {
-    void dependencies.gateway.heartbeat(job, leaseSeconds).then(ok => {
+    if (heartbeatInFlight) return
+    const pendingHeartbeat = dependencies.gateway.heartbeat(job, leaseSeconds).then(ok => {
       if (!ok) heartbeatStopped = true
     }).catch(() => {
       heartbeatStopped = true
     })
+    heartbeatInFlight = pendingHeartbeat
+    void pendingHeartbeat.finally(() => {
+      if (heartbeatInFlight === pendingHeartbeat) heartbeatInFlight = null
+    })
   }, heartbeatMs)
+
+  async function stopHeartbeats(): Promise<void> {
+    clearInterval(interval)
+    const pendingHeartbeat = heartbeatInFlight
+    await pendingHeartbeat
+  }
 
   try {
     const result = await dependencies.generate(job)
+    await stopHeartbeats()
+    if (heartbeatStopped) return { kind: 'stale', requestId: job.requestId }
     if (result.kind === 'unavailable') {
       const failed = await dependencies.gateway.markFailed(job, {
         code: result.failureKind,
@@ -93,6 +107,8 @@ export async function runAskWorkerOnce(workerId: string, dependencies: AskWorker
     const saved = await dependencies.gateway.saveGenerated(job)
     return { kind: saved === 'saved' ? 'saved' : saved === 'stale' ? 'stale' : 'generated', requestId: job.requestId }
   } catch {
+    await stopHeartbeats()
+    if (heartbeatStopped) return { kind: 'failure_write_stale', requestId: job.requestId, code: 'worker_internal_error' }
     const failed = await dependencies.gateway.markFailed(job, { code: 'worker_internal_error', retryAfterSeconds: null, attempts: [] })
     return failed === 'stale'
       ? { kind: 'failure_write_stale', requestId: job.requestId, code: 'worker_internal_error' }

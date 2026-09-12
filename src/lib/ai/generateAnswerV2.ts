@@ -188,9 +188,7 @@ function insufficientEvidence(retrieval: Exclude<RetrievalResult, { kind: 'evide
 }
 
 function generationFailureKind(error: unknown): AgnesFailureKind {
-  const status = typeof error === 'object' && error !== null && 'status' in error && typeof error.status === 'number'
-    ? error.status
-    : undefined
+  const status = httpStatus(error)
   if (status === 401) return 'unauthorized'
   if (status === 403) return 'forbidden'
   if (status === 429) return 'rate_limited'

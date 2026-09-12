@@ -1,11 +1,12 @@
 import { timingSafeEqual } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { hasAskWorkerConfiguration, runConfiguredAskWorkerOnce, workerIdentifier } from '@/lib/ask-worker/runtime'
+import { runtimeEnv } from '../../../../lib/runtime-env'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
-  const secret = process.env.DAOFLOW_ASK_WORKER_TOKEN
+  const secret = runtimeEnv('DAOFLOW_ASK_WORKER_TOKEN')
   if (!secret || secret.length < 32 || !hasAskWorkerConfiguration()) {
     return NextResponse.json({ error: { code: 'ASK_WORKER_UNAVAILABLE', message: '问道 worker 尚未配置。' } }, { status: 503, headers: { 'Cache-Control': 'no-store' } })
   }

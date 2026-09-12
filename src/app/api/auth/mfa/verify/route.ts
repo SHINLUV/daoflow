@@ -19,6 +19,6 @@ export async function POST(request: NextRequest) {
   const { error } = await bff.client.auth.mfa.verify({ factorId, challengeId, code })
   if (error) return failure(401, 'INVALID_CREDENTIALS', '双重验证码无效或已过期。', id)
   const response = empty()
-  markMfaRecent(response)
+  markMfaRecent(response, request)
   return bff.apply(response)
 }

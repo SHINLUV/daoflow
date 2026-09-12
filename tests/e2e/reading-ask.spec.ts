@@ -47,6 +47,42 @@ test('ask input remains reachable from 320px through desktop widths', async ({ p
   }
 })
 
+test('ask stays keyboard-operable with Chinese text at 200% CSS scale', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/ask')
+  const input = page.getByLabel('你的问题')
+  const submit = page.getByRole('button', { name: '问一问道' })
+
+  // Chromium does not expose desktop browser-zoom controls to Playwright. CSS
+  // zoom gives this local browser run an observable 200% layout stress case;
+  // physical-browser zoom remains a separate UAT gate.
+  await page.evaluate(() => { document.documentElement.style.zoom = '2' })
+  await input.focus()
+  await page.keyboard.insertText('中文输入仍应可编辑')
+  await page.keyboard.press('Enter')
+  await expect(input).toHaveValue('中文输入仍应可编辑\n')
+  await expect(input).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(submit).toBeFocused()
+  await submit.scrollIntoViewIfNeeded()
+  await expect(submit).toBeInViewport()
+  await page.screenshot({ path: testInfo.outputPath('ask-input-200-percent-css-zoom.png'), fullPage: true })
+})
+
+test('ask remains reachable with reduced motion and a constrained mobile height', async ({ page }, testInfo) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.setViewportSize({ width: 390, height: 390 })
+  await page.goto('/ask')
+  const input = page.getByLabel('你的问题')
+  const submit = page.getByRole('button', { name: '问一问道' })
+  await input.focus()
+  await page.keyboard.insertText('低高度视口也能继续输入。')
+  await expect(input).toHaveValue('低高度视口也能继续输入。')
+  await submit.scrollIntoViewIfNeeded()
+  await expect(submit).toBeInViewport()
+  await page.screenshot({ path: testInfo.outputPath('ask-input-390x390-reduced-motion.png'), fullPage: true })
+})
+
 test.describe('T04 reading and favorites — real authenticated browser flow', () => {
   test.skip(!enabled, 'BLOCKED: set DAOFLOW_E2E_READING=1 and DAOFLOW_E2E_STORAGE_STATE to a real local-Supabase authenticated storage state after migrations 003 then 004.')
   test.use({ storageState: storageState! })

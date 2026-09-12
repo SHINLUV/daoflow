@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { createAuthBff, isAuthConfigured } from '@/lib/auth/bff'
+import { clearCookie, createAuthBff, isAuthConfigured, markRecoverySession, recoveryCookieName } from '@/lib/auth/bff'
 import { normalizeEmail, readStrictObject, readString } from '@/lib/auth/contracts'
 import { empty, failure, readJson, requestId, verifyMutationRequest } from '@/lib/auth/http'
 
@@ -17,7 +17,23 @@ export async function POST(request: NextRequest) {
   if (!isAuthConfigured()) return failure(503, 'AUTH_UNAVAILABLE', '账户服务尚未配置。', id)
   const bff = createAuthBff(request)
   const type = flow === 'signup' ? 'signup' : flow === 'recovery' ? 'recovery' : 'email'
-  const { error } = await bff.client.auth.verifyOtp({ email, token, type })
-  if (error) return failure(401, 'INVALID_CREDENTIALS', '验证码无效、已过期或已被使用。', id)
-  return bff.apply(empty())
+  const { data, error } = await bff.client.auth.verifyOtp({ email, token, type })
+  if (error) {
+    const response = failure(401, 'INVALID_CREDENTIALS', '验证码无效、已过期或已被使用。', id)
+    clearCookie(response, recoveryCookieName(request), request)
+    return bff.apply(response)
+  }
+  const response = empty()
+  if (flow === 'recovery') {
+    // Password reset requires a signed, user- and session-bound recovery proof.
+    if (!data.user?.id || !data.session?.access_token || !await markRecoverySession(response, data.user.id, data.session.access_token, request)) {
+      const unavailable = failure(503, 'AUTH_UNAVAILABLE', '恢复会话暂时无法建立，请重新验证。', id)
+      clearCookie(unavailable, recoveryCookieName(request), request)
+      return bff.apply(unavailable)
+    }
+  } else {
+    // A login/signup must never inherit a pending recovery authorization.
+    clearCookie(response, recoveryCookieName(request), request)
+  }
+  return bff.apply(response)
 }

@@ -1,6 +1,8 @@
 import { createHmac } from 'node:crypto'
 import type { NextRequest } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { hasTrustedProxyAttestation } from './http'
+import { runtimeEnv } from '../runtime-env'
 
 type LimitResult =
   | { kind: 'allowed' }
@@ -15,7 +17,7 @@ const RECOVERY_LIMIT: LimitConfig = { action: 'password_recovery', limit: 5, win
 const PASSWORD_FAILURE_LIMIT: LimitConfig = { action: 'password_failure', limit: 10, windowSeconds: 60 * 60 }
 
 function hmacKey(): string | null {
-  const key = process.env.DAOFLOW_RATE_LIMIT_HMAC_KEY
+  const key = runtimeEnv('DAOFLOW_RATE_LIMIT_HMAC_KEY')
   return key && key.length >= 32 ? key : null
 }
 
@@ -29,8 +31,7 @@ function stableKey(value: string, key: string): string {
  * Without both values the caller must fail closed rather than trust X-Forwarded-For.
  */
 function trustedClientIp(request: NextRequest): string | null {
-  const attestation = process.env.DAOFLOW_PROXY_ATTESTATION_SECRET
-  if (!attestation || request.headers.get('x-daoflow-proxy-attestation') !== attestation) return null
+  if (!hasTrustedProxyAttestation(request)) return null
   const ip = request.headers.get('x-daoflow-client-ip')
   return ip && ip.length <= 64 && /^[0-9a-fA-F:.]+$/.test(ip) ? ip : null
 }

@@ -13,6 +13,6 @@ export async function POST(request: NextRequest) {
   const { error } = await bff.client.auth.signOut({ scope: 'global' })
   if (error) return failure(503, 'AUTH_UNAVAILABLE', '退出所有会话服务暂时不可用。', id)
   const response = empty()
-  clearAuthCookies(response)
+  clearAuthCookies(response, request)
   return bff.apply(response)
 }

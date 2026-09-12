@@ -26,4 +26,59 @@ describe('approved lexical retrieval', () => {
     expect(result).toMatchObject({ kind: 'evidence', corpusVersion: 'wb-v1' })
     if (result.kind === 'evidence') expect(result.evidence.map(item => item.chunkId)).toEqual(['approved-8'])
   })
+
+  it('fails closed on malformed approved metadata instead of passing it to Agnes', async () => {
+    const malformed: CorpusChunkRecord = {
+      ...chunks[0],
+      sourceUrl: 'javascript:alert(1)',
+      license: 'unknown',
+    }
+    const repository: ApprovedCorpusRepository = {
+      getRuntimePolicy: vi.fn().mockResolvedValue({ eligibility: 'eligible', corpusVersion: 'wb-v1', reason: 'test' }),
+      listChunksForLexicalRetrieval: vi.fn().mockResolvedValue([malformed]),
+    }
+
+    await expect(retrieveApprovedLexically('关系边界如何柔和表达', repository)).resolves.toMatchObject({
+      kind: 'insufficient_evidence',
+      reason: 'NO_APPROVED_EVIDENCE',
+    })
+  })
+
+  it('rejects an https-prefixed source URL without a valid host', async () => {
+    const malformed: CorpusChunkRecord = { ...chunks[0], sourceUrl: 'https://' }
+    const repository: ApprovedCorpusRepository = {
+      getRuntimePolicy: vi.fn().mockResolvedValue({ eligibility: 'eligible', corpusVersion: 'wb-v1', reason: 'test' }),
+      listChunksForLexicalRetrieval: vi.fn().mockResolvedValue([malformed]),
+    }
+
+    await expect(retrieveApprovedLexically('关系边界如何柔和表达', repository)).resolves.toMatchObject({
+      kind: 'insufficient_evidence',
+      reason: 'NO_APPROVED_EVIDENCE',
+    })
+  })
+
+  it('does not throw or emit evidence when an adapter lies about a required array field', async () => {
+    const malformed = { ...chunks[0], themeTerms: null } as unknown as CorpusChunkRecord
+    const repository: ApprovedCorpusRepository = {
+      getRuntimePolicy: vi.fn().mockResolvedValue({ eligibility: 'eligible', corpusVersion: 'wb-v1', reason: 'test' }),
+      listChunksForLexicalRetrieval: vi.fn().mockResolvedValue([malformed]),
+    }
+
+    await expect(retrieveApprovedLexically('关系边界如何柔和表达', repository)).resolves.toMatchObject({
+      kind: 'insufficient_evidence',
+      reason: 'NO_APPROVED_EVIDENCE',
+    })
+  })
+
+  it('fails closed when a future adapter returns non-object rows', async () => {
+    const repository: ApprovedCorpusRepository = {
+      getRuntimePolicy: vi.fn().mockResolvedValue({ eligibility: 'eligible', corpusVersion: 'wb-v1', reason: 'test' }),
+      listChunksForLexicalRetrieval: vi.fn().mockResolvedValue([null, 'not-a-chunk'] as unknown as CorpusChunkRecord[]),
+    }
+
+    await expect(retrieveApprovedLexically('关系边界如何柔和表达', repository)).resolves.toMatchObject({
+      kind: 'insufficient_evidence',
+      reason: 'NO_APPROVED_EVIDENCE',
+    })
+  })
 })

@@ -50,24 +50,39 @@ Write-Host ('Agnes configured; local database: ' + (-not $WithoutDatabase) + '. 
 switch ($Action) {
   'Build' { & npm run build }
   'Start' {
-    # `output: standalone` intentionally omits public/.next/static. Prepare the
-    # generated runtime tree before launch so the browser never receives an
-    # HTML shell whose JavaScript and CSS chunks 404.
+    # `output: standalone` intentionally omits generated public assets and,
+    # on this Windows build, the runtime `.next/server` manifests. Prepare the
+    # complete runtime tree before launch so routed API requests do not fail
+    # after a visually successful page load.
     $standaloneRoot = Join-Path $projectRoot '.next\standalone'
     $standaloneServer = Join-Path $standaloneRoot 'server.js'
     $staticSource = Join-Path $projectRoot '.next\static'
-    if (-not (Test-Path -LiteralPath $standaloneServer) -or -not (Test-Path -LiteralPath $staticSource)) {
+    $serverSource = Join-Path $projectRoot '.next\server'
+    if (-not (Test-Path -LiteralPath $standaloneServer) -or -not (Test-Path -LiteralPath $staticSource) -or -not (Test-Path -LiteralPath $serverSource)) {
       throw 'Standalone build output is missing. Run scripts/local-session.ps1 -Action Build first.'
     }
     $staticTarget = Join-Path $standaloneRoot '.next\static'
     New-Item -ItemType Directory -Force -Path $staticTarget | Out-Null
     Copy-Item -Path (Join-Path $staticSource '*') -Destination $staticTarget -Recurse -Force
+    $serverTarget = Join-Path $standaloneRoot '.next\server'
+    New-Item -ItemType Directory -Force -Path $serverTarget | Out-Null
+    Copy-Item -Path (Join-Path $serverSource '*') -Destination $serverTarget -Recurse -Force
+    foreach ($runtimeFile in @('BUILD_ID', 'routes-manifest.json', 'prerender-manifest.json')) {
+      $runtimeSource = Join-Path $projectRoot (Join-Path '.next' $runtimeFile)
+      if (Test-Path -LiteralPath $runtimeSource) {
+        Copy-Item -LiteralPath $runtimeSource -Destination (Join-Path $standaloneRoot '.next') -Force
+      }
+    }
     $publicSource = Join-Path $projectRoot 'public'
     if (Test-Path -LiteralPath $publicSource) {
       Copy-Item -Path (Join-Path $publicSource '*') -Destination $standaloneRoot -Recurse -Force
     }
     $env:PORT = '3200'
     $env:HOSTNAME = '127.0.0.1'
+    # The standalone server has NODE_ENV=production; declare this explicitly
+    # only for the loopback launcher so browser-usable development cookies do
+    # not weaken production deployments.
+    $env:DAOFLOW_LOCAL_RUNTIME = 'true'
     & node $standaloneServer
   }
   'Command' { if (-not $Command) { throw 'Command is required.' }; & $Command @CommandArguments }

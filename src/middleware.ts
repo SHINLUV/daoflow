@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { authCookieName } from '@/lib/auth/bff'
-import { noStoreHeaders } from '@/lib/auth/http'
+import { isProduction, noStoreHeaders } from '@/lib/auth/http'
 
 /**
  * Supabase Auth 中间件
@@ -18,7 +18,13 @@ export async function middleware(request: NextRequest) {
     process.env.SUPABASE_INTERNAL_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      cookieOptions: { name: authCookieName() },
+      cookieOptions: {
+        name: authCookieName(request),
+        httpOnly: true,
+        secure: isProduction(request),
+        sameSite: 'lax',
+        path: '/',
+      },
       cookies: {
         getAll() {
           return request.cookies.getAll()

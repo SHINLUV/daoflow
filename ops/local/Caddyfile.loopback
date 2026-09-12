@@ -1,0 +1,16 @@
+# Local-only BFF verification ingress. It deliberately binds on the host's
+# loopback address when launched by the verification procedure; never deploy
+# this file as a public ingress.
+:80 {
+    reverse_proxy host.docker.internal:3200 {
+        # `header_up Name value` replaces a client header. Keep these as set
+        # operations only: mixing a deletion for the same upstream header
+        # makes Caddy's adapter delete the final value as well.
+        header_up X-Daoflow-Client-Ip {remote_host}
+        header_up X-Daoflow-Proxy-Attestation {$DAOFLOW_PROXY_ATTESTATION_SECRET}
+        # This verifier is deliberately bound to 127.0.0.1:3210, so use that
+        # browser-facing authority rather than an upstream-rewritten Host.
+        header_up X-Forwarded-Host 127.0.0.1:3210
+        header_up X-Forwarded-Proto {http.request.scheme}
+    }
+}

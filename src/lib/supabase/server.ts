@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import { authCookieName } from '@/lib/auth/bff'
+import { cookies, headers } from 'next/headers'
+import { authCookieNameForHost } from '@/lib/auth/bff'
+import { isProductionForHost } from '@/lib/auth/http'
 
 /**
  * Supabase 服务端客户端（App Router）
@@ -12,6 +13,7 @@ export const isSupabaseConfigured = Boolean(
 
 export function createClient() {
   const cookieStore = cookies()
+  const requestHost = headers().get('host')
 
   return createServerClient(
     process.env.SUPABASE_INTERNAL_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://supabase-not-configured.invalid',
@@ -19,7 +21,13 @@ export function createClient() {
     {
       // All business routes consume the HttpOnly BFF session, never the
       // browser-readable legacy sb-* cookie.
-      cookieOptions: { name: authCookieName() },
+      cookieOptions: {
+        name: authCookieNameForHost(requestHost),
+        httpOnly: true,
+        secure: isProductionForHost(requestHost),
+        sameSite: 'lax',
+        path: '/',
+      },
       cookies: {
         getAll() {
           return cookieStore.getAll()

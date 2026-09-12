@@ -1,14 +1,18 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { NextRequest } from 'next/server'
 import { readStrictObject } from '../../src/lib/auth/contracts'
-import { csrfCookieName, issueCsrfToken, json, verifyMutationRequest } from '../../src/lib/auth/http'
+import { browserOrigin, csrfCookieName, issueCsrfToken, json, verifyMutationRequest } from '../../src/lib/auth/http'
 import { startAuthTransaction, verifyAuthTransaction } from '../../src/lib/auth/transactions'
+import { requireHallMutationProtection } from '../../src/lib/hall/http'
 
 const originalTransactionSecret = process.env.DAOFLOW_AUTH_TRANSACTION_SECRET
+const originalProxyAttestationSecret = process.env.DAOFLOW_PROXY_ATTESTATION_SECRET
 
 afterEach(() => {
   if (originalTransactionSecret === undefined) delete process.env.DAOFLOW_AUTH_TRANSACTION_SECRET
   else process.env.DAOFLOW_AUTH_TRANSACTION_SECRET = originalTransactionSecret
+  if (originalProxyAttestationSecret === undefined) delete process.env.DAOFLOW_PROXY_ATTESTATION_SECRET
+  else process.env.DAOFLOW_PROXY_ATTESTATION_SECRET = originalProxyAttestationSecret
 })
 
 describe('BFF request boundary', () => {
@@ -31,6 +35,99 @@ describe('BFF request boundary', () => {
     expect(verifyMutationRequest(accepted)).toEqual({ ok: true })
     expect(verifyMutationRequest(crossSite)).toMatchObject({ ok: false, code: 'ORIGIN_REJECTED' })
     expect(verifyMutationRequest(mismatch)).toMatchObject({ ok: false, code: 'CSRF_REJECTED' })
+  })
+
+  it('accepts the browser-facing forwarded authority only with a valid proxy attestation', () => {
+    process.env.DAOFLOW_PROXY_ATTESTATION_SECRET = 'p'.repeat(32)
+    const csrf = 'a'.repeat(64)
+    const request = new NextRequest('http://127.0.0.1:3200/api/auth/password/sign-up', {
+      method: 'POST',
+      headers: {
+        origin: 'http://localhost',
+        host: '127.0.0.1:3200',
+        'x-forwarded-host': 'localhost:80',
+        'x-forwarded-proto': 'http',
+        'x-daoflow-proxy-attestation': 'p'.repeat(32),
+        cookie: `${csrfCookieName()}=${csrf}`,
+        'x-daoflow-csrf': csrf,
+      },
+    })
+
+    expect(verifyMutationRequest(request)).toEqual({ ok: true })
+    expect(browserOrigin(request)).toBe('http://localhost')
+  })
+
+  it('rejects a trusted proxy request when the browser Origin does not match its forwarded authority', () => {
+    process.env.DAOFLOW_PROXY_ATTESTATION_SECRET = 'p'.repeat(32)
+    const csrf = 'a'.repeat(64)
+    const request = new NextRequest('http://127.0.0.1:3200/api/auth/password/sign-up', {
+      method: 'POST',
+      headers: {
+        origin: 'http://attacker.invalid',
+        host: '127.0.0.1:3200',
+        'x-forwarded-host': 'localhost:80',
+        'x-forwarded-proto': 'http',
+        'x-daoflow-proxy-attestation': 'p'.repeat(32),
+        cookie: `${csrfCookieName()}=${csrf}`,
+        'x-daoflow-csrf': csrf,
+      },
+    })
+
+    expect(verifyMutationRequest(request)).toMatchObject({ ok: false, code: 'ORIGIN_REJECTED' })
+    expect(browserOrigin(request)).toBe('http://localhost')
+  })
+
+  it('rejects client-spoofed forwarded authority without the proxy attestation', () => {
+    process.env.DAOFLOW_PROXY_ATTESTATION_SECRET = 'p'.repeat(32)
+    const csrf = 'a'.repeat(64)
+    const request = new NextRequest('http://127.0.0.1:3200/api/auth/password/sign-up', {
+      method: 'POST',
+      headers: {
+        origin: 'http://localhost',
+        host: '127.0.0.1:3200',
+        'x-forwarded-host': 'localhost:80',
+        'x-forwarded-proto': 'http',
+        'x-daoflow-proxy-attestation': 'client-spoof',
+        cookie: `${csrfCookieName()}=${csrf}`,
+        'x-daoflow-csrf': csrf,
+      },
+    })
+
+    expect(verifyMutationRequest(request)).toMatchObject({ ok: false, code: 'ORIGIN_REJECTED' })
+    expect(browserOrigin(request)).toBe('http://localhost:3200')
+  })
+
+  it('applies the same attested browser origin rule to anonymous Hall mutations', () => {
+    process.env.DAOFLOW_PROXY_ATTESTATION_SECRET = 'p'.repeat(32)
+    const csrf = 'a'.repeat(64)
+    const csrfName = csrfCookieName()
+    const trusted = new NextRequest('http://127.0.0.1:3200/api/hall/publications', {
+      method: 'POST',
+      headers: {
+        origin: 'http://127.0.0.1:3210',
+        host: '127.0.0.1:3200',
+        'x-forwarded-host': '127.0.0.1:3210',
+        'x-forwarded-proto': 'http',
+        'x-daoflow-proxy-attestation': 'p'.repeat(32),
+        cookie: `${csrfName}=${csrf}`,
+        'x-daoflow-csrf': csrf,
+      },
+    })
+    const spoofed = new NextRequest('http://127.0.0.1:3200/api/hall/publications', {
+      method: 'POST',
+      headers: {
+        origin: 'http://127.0.0.1:3210',
+        host: '127.0.0.1:3200',
+        'x-forwarded-host': '127.0.0.1:3210',
+        'x-forwarded-proto': 'http',
+        'x-daoflow-proxy-attestation': 'spoofed',
+        cookie: `${csrfName}=${csrf}`,
+        'x-daoflow-csrf': csrf,
+      },
+    })
+
+    expect(requireHallMutationProtection(trusted)).toBeNull()
+    expect(requireHallMutationProtection(spoofed)).toMatchObject({ code: 'ORIGIN_REJECTED' })
   })
 
   it('rejects unlisted client fields rather than silently accepting control fields', () => {

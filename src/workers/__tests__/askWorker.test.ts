@@ -61,4 +61,58 @@ describe('persistent ask worker domain tick', () => {
     expect(db.completeGenerated).toHaveBeenCalledWith(expect.objectContaining({ claimToken: 'claim', generation: 1 }), expect.objectContaining({ schemaVersion: 2 }))
     expect(calls).toEqual(['heartbeat', 'complete', 'save'])
   })
+
+  it('does not complete after an in-flight heartbeat reports its claim stale', async () => {
+    const db = gateway()
+    let heartbeatStarted!: () => void
+    const heartbeatHasStarted = new Promise<void>(resolve => { heartbeatStarted = resolve })
+    let resolveHeartbeat!: (ok: boolean) => void
+    const heartbeatResult = new Promise<boolean>(resolve => { resolveHeartbeat = resolve })
+    let resolveGeneration!: (result: { kind: 'insufficient_evidence'; provider: 'none'; model: null; degraded: false; answer: typeof answer; corpusVersion: null; promptVersion: 'dao-answer-v2.1'; attempts: []; reason: string }) => void
+    const pendingGeneration = new Promise<{ kind: 'insufficient_evidence'; provider: 'none'; model: null; degraded: false; answer: typeof answer; corpusVersion: null; promptVersion: 'dao-answer-v2.1'; attempts: []; reason: string }>(resolve => { resolveGeneration = resolve })
+    db.heartbeat = vi.fn().mockImplementation(() => {
+      heartbeatStarted()
+      return heartbeatResult
+    })
+
+    const running = runAskWorkerOnce('worker-a', {
+      gateway: db,
+      heartbeatMs: 1,
+      generate: () => pendingGeneration,
+    })
+    await heartbeatHasStarted
+    resolveGeneration({ kind: 'insufficient_evidence', provider: 'none', model: null, degraded: false, answer, corpusVersion: null, promptVersion: 'dao-answer-v2.1', attempts: [], reason: 'CORPUS_NOT_ELIGIBLE' })
+    resolveHeartbeat(false)
+
+    await expect(running).resolves.toEqual({ kind: 'stale', requestId: 'r-1' })
+    expect(db.completeGenerated).not.toHaveBeenCalled()
+    expect(db.saveGenerated).not.toHaveBeenCalled()
+  })
+
+  it('does not start overlapping heartbeats while the prior heartbeat is unresolved', async () => {
+    vi.useFakeTimers()
+    try {
+      const db = gateway()
+      const generationResult = { kind: 'insufficient_evidence' as const, provider: 'none' as const, model: null, degraded: false as const, answer, corpusVersion: null, promptVersion: 'dao-answer-v2.1' as const, attempts: [], reason: 'CORPUS_NOT_ELIGIBLE' }
+      let releaseGeneration!: () => void
+      const pendingGeneration = new Promise<typeof generationResult>(resolve => { releaseGeneration = () => resolve(generationResult) })
+      let releaseHeartbeat!: (ok: boolean) => void
+      const pendingHeartbeat = new Promise<boolean>(resolve => { releaseHeartbeat = resolve })
+      db.heartbeat = vi.fn().mockImplementation(() => pendingHeartbeat)
+
+      const running = runAskWorkerOnce('worker-a', {
+        gateway: db,
+        heartbeatMs: 1,
+        generate: () => pendingGeneration,
+      })
+      await vi.advanceTimersByTimeAsync(5)
+      expect(db.heartbeat).toHaveBeenCalledTimes(1)
+
+      releaseHeartbeat(true)
+      releaseGeneration()
+      await expect(running).resolves.toEqual({ kind: 'saved', requestId: 'r-1' })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })
