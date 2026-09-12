@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto'
 import { execFileSync, spawn } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 
 const projectRoot = process.cwd()
@@ -17,6 +17,29 @@ function nativeCli(command, argumentsList, options) {
 
 if (!existsSync(caddyfile) || !existsSync(standaloneServer)) {
   throw new Error('Build output or loopback Caddy configuration is missing.')
+}
+
+// Next's standalone tracing output does not include the generated static
+// assets or all route manifests. Keep this preparation beside the loopback
+// launcher so a fresh build cannot leave the manual-test page as an unstyled
+// shell with a client-side 404.
+const standaloneRoot = join(projectRoot, '.next', 'standalone')
+const nextSource = join(projectRoot, '.next')
+for (const directory of ['static', 'server']) {
+  const source = join(nextSource, directory)
+  if (!existsSync(source)) throw new Error(`Standalone runtime source is missing: .next/${directory}`)
+  mkdirSync(join(standaloneRoot, '.next'), { recursive: true })
+  cpSync(source, join(standaloneRoot, '.next', directory), { recursive: true, force: true })
+}
+for (const runtimeFile of ['BUILD_ID', 'routes-manifest.json', 'prerender-manifest.json']) {
+  const source = join(nextSource, runtimeFile)
+  if (existsSync(source)) cpSync(source, join(standaloneRoot, '.next', runtimeFile), { force: true })
+}
+const publicRoot = join(projectRoot, 'public')
+if (existsSync(publicRoot)) {
+  for (const entry of readdirSync(publicRoot)) {
+    cpSync(join(publicRoot, entry), join(standaloneRoot, entry), { recursive: true, force: true })
+  }
 }
 
 const existing = nativeCli('docker', ['ps', '-a', '--filter', `name=^/${caddyName}$`, '--format', '{{.ID}}'], { encoding: 'utf8' }).trim()
