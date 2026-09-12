@@ -1,4 +1,4 @@
-import { createHmac, randomBytes } from 'node:crypto'
+import { createHmac, randomBytes, randomUUID } from 'node:crypto'
 import { chmodSync, existsSync, renameSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
@@ -51,6 +51,11 @@ function jwt(role) {
 
 const anonKey = jwt('anon')
 const serviceRoleKey = jwt('service_role')
+const authTransactionSecret = randomBytes(48).toString('base64url')
+const rateLimitHmacKey = randomBytes(48).toString('base64url')
+const proxyAttestationSecret = randomBytes(48).toString('base64url')
+const askWorkerToken = randomBytes(48).toString('base64url')
+const askWorkerId = randomUUID()
 const smtpUser = verification ? 'verify' : process.env.DAOFLOW_SMTP_USER
 const smtpPass = verification ? 'verify' : process.env.DAOFLOW_SMTP_PASS
 const smtpAdminEmail = verification ? 'verify@example.invalid' : process.env.DAOFLOW_SMTP_ADMIN_EMAIL
@@ -90,6 +95,13 @@ const lines = [
   'AGNES_BASE_URL=https://apihub.agnes-ai.com/v1',
   `DEEPSEEK_API_KEY=${process.env.DAOFLOW_DEEPSEEK_API_KEY ?? ''}`,
   'DEEPSEEK_BASE_URL=https://api.deepseek.com/v1',
+  `DAOFLOW_PUBLIC_ORIGIN=${siteUrl}`,
+  `DAOFLOW_AUTH_TRANSACTION_SECRET=${authTransactionSecret}`,
+  `DAOFLOW_RATE_LIMIT_HMAC_KEY=${rateLimitHmacKey}`,
+  `DAOFLOW_PROXY_ATTESTATION_SECRET=${proxyAttestationSecret}`,
+  `DAOFLOW_ASK_WORKER_TOKEN=${askWorkerToken}`,
+  `DAOFLOW_ASK_WORKER_ID=${askWorkerId}`,
+  'DAOFLOW_CORPUS_VERSION=dao-de-jing-wang-bi-v1',
   '',
 ]
 
