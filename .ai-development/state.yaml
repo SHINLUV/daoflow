@@ -11,19 +11,19 @@ project:
       "docs/redesign-v2/19-AUTH-HALL-RAG-EXECUTION-MATRIX.md",
       "docs/redesign-v2/20-AUTH-HALL-RAG-SECURITY-AND-DATA-CONTRACT.md",
     ]
-current_stage: ENGINEERING_VERIFICATION
-current_gate: engineering_verification
+current_stage: PRODUCTION_ACCEPTANCE
+current_gate: production_deployment
 current_task:
   {
     id: "AUTH_HALL_RAG_DELTA",
     description: "实现新增私人账户、同道大厅、可信经典 RAG、Agnes answer_v2 与问道输入框；旧技术验收不覆盖该增量",
     owner: "Delivery controller",
-    status: INDEPENDENT_REACCEPTANCE_R3_BLOCKED_EXTERNAL_RUNTIME,
+    status: PRODUCTION_DEPLOYED_R4_FEATURE_GATES_BLOCKED,
   }
-execution_status: AUTH_HALL_RAG_ENGINEERING_VERIFICATION
+execution_status: AUTH_HALL_RAG_PRODUCTION_DEPLOYED_PARTIAL
 starting_commit: f3aa69376edd11b0895c8e58fe58274012fa9a1f
-current_commit: 6e21b179bc6bf0a0560618df2df9fd6e1a365166
-last_verified_commit: 6e21b179bc6bf0a0560618df2df9fd6e1a365166
+current_commit: ab067cdca07dba51699b6790332697b7101aa8c1
+last_verified_commit: ab067cdca07dba51699b6790332697b7101aa8c1
 gate_status:
   prd_complete: PASS
   prd_review: PASS
@@ -35,16 +35,17 @@ gate_status:
   implementation_complete: PASS
   engineering_verification: BLOCKED
   independent_acceptance: BLOCKED
+  production_deployment: PASS
   uat: NOT_EXECUTED
   pilot_readiness: NOT_EXECUTED
 readiness: { status: NOT_READY }
 blockers:
   - "LOCAL_DB_011_012_BACKUP_APPLY_VERIFY=PASS_WITH_RESTORE_SCOPE_LIMIT：保留数据副本和原库已前向应用011/012且关键计数不变；克隆恢复对realtime/vault有权限警告，不构成完整Supabase灾难恢复。证据见docs/redesign-v2/evidence/AH-P0/local-migration-011-012.md。"
   - "CORPUS_APPROVAL_PENDING：候选语料 manifest 已有固定revision/hash和81章差异账本，但独立经典审核、许可留证和批准尚未完成；任何 RAG 读取必须保持 NOT_ELIGIBLE。"
-  - "RUNTIME_AUTH_PROXY_AGNES_RAG_REQUIRED：真实邮件/OTP/MFA、BFF 会话、可信 Caddy 代理证明、已部署 worker、真实 Agnes 与已批准语料均未运行验证；本地测试、克隆库和服务角色不能替代。"
+  - "PRODUCTION_RUNTIME_PARTIAL：候选 ab067cd 已部署；Caddy 可信代理、正式迁移、app 与 ask-worker 健康门已由生产和独立浏览器验证。真实邮件/OTP/MFA、双 JWT/RLS、真实 Agnes 与已批准语料仍未完成。"
   - "TWO_USER_RLS_HALL_REQUIRED：私人数据双 JWT 隔离、跨标签退出、大厅作者/他人/审核角色和注销级联尚无真实浏览器运行证据。"
   - "BUSINESS_UAT_PENDING：真实业务用户仍需自行确认其内容、流程和商业可用性；技术验收不代签。"
-  - "真实用户业务UAT、生产部署和远程生产迁移均不在本轮范围。"
+  - "PRODUCTION_DEPLOYMENT=PASS：远程生产迁移、版本切换和基础运行验收完成；此结果不替代真实用户业务 UAT。"
   - "R3_LOCAL_RUNTIME_REMEDIATION=PASS_LIMITED：前向新增迁移、Hall最小授权与无跳页、standalone静态资产和局部输入框可达性均有本地证据；完整浏览器E2E未取得可记录退出码，不能外推为认证、RLS、Agnes、worker或UAT通过。"
 artifacts:
   auth_hall_rag_solution:
@@ -101,6 +102,16 @@ artifacts:
     {
       path: docs/redesign-v2/reviews/ah-p0-runtime-gates-independent-acceptance-r3.md,
       status: BLOCKED_EXTERNAL_RUNTIME,
+    }
+  auth_hall_rag_production_deployment:
+    {
+      path: docs/redesign-v2/evidence/AH-P0/ab067cd/production-deployment.md,
+      status: PASS_DEPLOYMENT_FEATURE_GATES_BLOCKED,
+    }
+  auth_hall_rag_production_independent_acceptance_r4:
+    {
+      path: docs/redesign-v2/reviews/ah-p0-production-independent-acceptance-r4.md,
+      status: PARTIAL_FEATURE_GATES_BLOCKED,
     }
   dao_corpus_manifest:
     {
@@ -176,9 +187,9 @@ verification:
     }
   runtime:
     {
-      status: BLOCKED,
+      status: PARTIAL_PRODUCTION_DEPLOYED,
       evidence:
-        [docs/redesign-v2/evidence/AH-P0/615c53b/engineering-verification.md, docs/redesign-v2/evidence/AH-P0/6e21b17/runtime-gate-verification.md],
+        [docs/redesign-v2/evidence/AH-P0/615c53b/engineering-verification.md, docs/redesign-v2/evidence/AH-P0/6e21b17/runtime-gate-verification.md, docs/redesign-v2/evidence/AH-P0/ab067cd/production-deployment.md],
     }
   independent_acceptance:
     {
@@ -188,13 +199,14 @@ verification:
           docs/redesign-v2/reviews/ah-p0-independent-acceptance.md,
           docs/redesign-v2/reviews/ah-p0-independent-reacceptance-r2.md,
           docs/redesign-v2/reviews/ah-p0-runtime-gates-independent-acceptance-r3.md,
+          docs/redesign-v2/reviews/ah-p0-production-independent-acceptance-r4.md,
         ],
     }
   uat: { status: NOT_EXECUTED, evidence: [] }
 independent_review:
   status: BLOCKED
-  report: docs/redesign-v2/reviews/ah-p0-runtime-gates-independent-acceptance-r3.md
-  note: "R3 独立验收确认本地 Hall 授权/分页修复；真实认证、RLS、可信语料、Agnes、worker、全浏览器E2E、攻击/质量集与UAT仍 BLOCKED，不能发布。"
+  report: docs/redesign-v2/reviews/ah-p0-production-independent-acceptance-r4.md
+  note: "R4 独立验收确认 ab067cd 已真实生产部署，页面、静态资源、可信代理、容器、worker 健康与迁移通过；approved corpus、真实 Agnes、认证/RLS/大厅闭环和 UAT 仍 BLOCKED，不能宣称完整功能通过。"
 visual_polish:
   status: PASS
   candidate: 0a96cbf4ce98c2116ab8812495ce93f0a21bb0fa
@@ -204,6 +216,15 @@ visual_polish:
   visual_score: 92
   note: "本轮限定展示范围通过，不替代上述T09全产品验收记录；真实服务BLOCKED和BUSINESS_UAT_PENDING保持。"
 history:
+  - {
+      event: AUTH_HALL_RAG_PRODUCTION_DEPLOYMENT_R4,
+      result: PARTIAL,
+      reviewer: prod_independent_acceptance,
+      candidate: ab067cdca07dba51699b6790332697b7101aa8c1,
+      evidence: docs/redesign-v2/evidence/AH-P0/ab067cd/production-deployment.md,
+      report: docs/redesign-v2/reviews/ah-p0-production-independent-acceptance-r4.md,
+      note: "生产版本、正式迁移、Caddy 可信代理、Web 与 worker 健康和真实浏览器公共页面通过；语料仍 pending/chunks=0，真实 Agnes、邮箱认证、双 JWT/RLS、大厅完整闭环和业务 UAT 保持 BLOCKED。",
+    }
   - {
       event: AUTH_HALL_RAG_RUNTIME_GATE_REMEDIATION_R3,
       result: BLOCKED,
