@@ -91,7 +91,7 @@ async function anonymousAsk(request: NextRequest, question: string, requestId: s
     return NextResponse.json(body, { headers: { 'Cache-Control': 'no-store' } })
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : ''
-    if (/ANONYMOUS_DAILY_LIMIT|GLOBAL_DAILY_LIMIT/.test(message)) return error(429, 'ASK_RATE_LIMITED', '匿名问道已达到当前额度，请稍后再试。', requestId, 60)
+    if (/GLOBAL_DAILY_LIMIT/.test(message)) return error(429, 'ASK_RATE_LIMITED', '问道服务已达到全站保护额度，请稍后再试。', requestId, 60)
     if (/GENERATION_CAPACITY/.test(message)) return error(429, 'ASK_GENERATION_BUSY', '当前问道人数较多，请稍后再试。', requestId, 15)
     return error(503, 'ANONYMOUS_ASK_UNAVAILABLE', '匿名问道暂不可用，未调用备用模型。', requestId)
   } finally {
