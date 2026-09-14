@@ -18,6 +18,13 @@ describe('AnswerV2 server validation', () => {
     expect(parsed.citations[0].chapter).toBe(8)
   })
 
+  it('accepts only an otherwise exact JSON markdown fence emitted by Agnes', () => {
+    const parsed = parseAndValidateAnswerV2(`\n\n\`\`\`json\n${answer()}\n\`\`\``, evidence)
+    expect(parsed.citations[0].chunk_id).toBe('wb-001')
+
+    expect(() => parseAndValidateAnswerV2(`说明如下：\n\`\`\`json\n${answer()}\n\`\`\``, evidence)).toThrow(/合法 JSON/)
+  })
+
   it('allows only predefined whitespace and punctuation differences in quote proof', () => {
     expect(quoteMatchesEvidence('水善利万物 而不争。', evidence[0].text)).toBe(true)
     expect(quoteMatchesEvidence('水善害万物而不争', evidence[0].text)).toBe(false)

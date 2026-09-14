@@ -91,7 +91,7 @@ export async function generateDaoAnswerV2(
   const random = dependencies.random ?? Math.random
   const callAgnes = dependencies.callAgnes ?? defaultCallAgnes
   const metadata = getProviderMetadata('agnes')
-  const messages = buildDaoAnswerMessages(question, retrieval.evidence)
+  let messages = buildDaoAnswerMessages(question, retrieval.evidence)
   const attempts: AgnesAttempt[] = []
   const startedAt = now().getTime()
   let failureKind: AgnesFailureKind = 'unknown'
@@ -138,6 +138,10 @@ export async function generateDaoAnswerV2(
       })
       if (!retryAllowed(failureKind, attempt)) break
 
+      if (repairableModelOutput(failureKind)) {
+        messages = [...messages, modelOutputCorrection(failureKind)]
+      }
+
       const waitMs = retryDelayMilliseconds(failureKind, retryAfter, random)
       const remainingAfterFailure = TOTAL_GENERATION_BUDGET_MS - (now().getTime() - startedAt)
       if (waitMs >= remainingAfterFailure) break
@@ -155,6 +159,17 @@ export async function generateDaoAnswerV2(
     attempts,
     failureKind,
     retryAfterSeconds: retryAfter,
+  }
+}
+
+function repairableModelOutput(kind: AgnesFailureKind): boolean {
+  return kind === 'invalid_json' || kind === 'invalid_citation' || kind === 'format_error'
+}
+
+function modelOutputCorrection(kind: AgnesFailureKind): ChatMessage {
+  return {
+    role: 'user',
+    content: `上一份输出未通过服务器校验（${kind}）。请重新生成：只输出一个 JSON 对象；citations.quote 必须直接复制 evidence.text 的连续原文，保留繁简体、异体字和原标点，不得翻译、转写或改写；正文总长度不超过 1200 字。`,
   }
 }
 

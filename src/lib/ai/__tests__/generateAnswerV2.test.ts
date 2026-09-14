@@ -62,6 +62,28 @@ describe('v2 Agnes generation', () => {
     expect(sleep).toHaveBeenCalledWith(250)
   })
 
+  it('retries an invalid citation with a bounded server-authored correction', async () => {
+    const invalid = JSON.stringify({
+      ...JSON.parse(modelResponse()),
+      citations: [{ chunk_id: 'wb-008', chapter: 8, quote: '水善利萬物而不爭', explanation: '字形被模型改写。' }],
+    })
+    const callAgnes = vi.fn().mockResolvedValueOnce(invalid).mockResolvedValueOnce(modelResponse())
+    const result = await generateDaoAnswerV2('我不知道怎样说边界', {
+      corpusRepository: approvedRepository,
+      callAgnes,
+      sleep: vi.fn().mockResolvedValue(undefined),
+      random: () => 0,
+    })
+
+    expect(result).toMatchObject({ kind: 'success', provider: 'agnes' })
+    expect(callAgnes).toHaveBeenCalledTimes(2)
+    const retryMessages = callAgnes.mock.calls[1][0]
+    expect(retryMessages).toHaveLength(3)
+    expect(retryMessages[2]).toMatchObject({ role: 'user' })
+    expect(retryMessages[2].content).toContain('直接复制 evidence.text')
+    expect(retryMessages[2].content).not.toContain('我不知道怎样说边界')
+  })
+
   it.each([0, 700, Number.NaN])('falls back to status when statusCode is invalid (%s)', async statusCode => {
     const callAgnes = vi.fn().mockRejectedValue(Object.assign(new Error('too many requests'), { statusCode, status: 429 }))
     const result = await generateDaoAnswerV2('我不知道怎样说边界', {

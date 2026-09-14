@@ -32,18 +32,26 @@ const MAX_GENERATED_BODY_LENGTH = 1200
 
 /**
  * Parse only one JSON object and then enforce the v2.1 contract independently
- * of the model. Markdown fences and prose wrappers are intentionally rejected.
+ * of the model. Agnes may wrap an otherwise exact object in one JSON code
+ * fence, so that single presentation wrapper is tolerated; surrounding prose,
+ * multiple blocks and partial-object extraction remain rejected.
  */
 export function parseAndValidateAnswerV2(raw: string, evidence: RetrievalEvidence[]): AnswerV2 {
   if (!raw || raw.trim() === '') throw new FormatError('Agnes 返回内容为空')
 
   let parsed: unknown
   try {
-    parsed = JSON.parse(raw)
+    parsed = JSON.parse(unwrapSingleJsonFence(raw))
   } catch {
     throw new FormatError('Agnes 返回不是合法 JSON')
   }
   return validateAnswerV2(parsed, evidence)
+}
+
+function unwrapSingleJsonFence(raw: string): string {
+  const trimmed = raw.trim()
+  const fenced = trimmed.match(/^```(?:json)?[ \t]*\r?\n([\s\S]*?)\r?\n```$/i)
+  return fenced ? fenced[1].trim() : trimmed
 }
 
 export function validateAnswerV2(value: unknown, evidence: RetrievalEvidence[]): AnswerV2 {

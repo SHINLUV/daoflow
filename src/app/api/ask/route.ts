@@ -66,6 +66,18 @@ async function anonymousAsk(request: NextRequest, question: string, requestId: s
     if (!corpusRepository) return error(503, 'RAG_UNAVAILABLE', '可信经典库暂不可用，未调用模型。', requestId)
     const generated = await generateDaoAnswerV2(question, { corpusRepository })
     if (generated.kind === 'unavailable') {
+      console.warn('anonymous_ask_agnes_unavailable', {
+        requestId,
+        failureKind: generated.failureKind,
+        retryAfterSeconds: generated.retryAfterSeconds,
+        attempts: generated.attempts.map(attempt => ({
+          attempt: attempt.attempt,
+          outcome: attempt.outcome,
+          failureKind: attempt.failureKind,
+          httpStatus: attempt.httpStatus,
+          latencyMs: attempt.latencyMs,
+        })),
+      })
       return error(503, 'AGNES_UNAVAILABLE', 'Agnes 本次未能生成可验证的回答；没有改用静态章节或其他模型。', requestId, generated.retryAfterSeconds ?? undefined)
     }
     const body: AskAnswerResponse = {
