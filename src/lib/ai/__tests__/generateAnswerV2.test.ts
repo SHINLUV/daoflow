@@ -30,6 +30,7 @@ describe('v2 Agnes generation', () => {
     const result = await generateDaoAnswerV2('我不知道怎样说边界', { corpusRepository: approvedRepository, callAgnes })
     expect(result).toMatchObject({ kind: 'success', provider: 'agnes', degraded: false })
     const messages = callAgnes.mock.calls[0][0]
+    expect(callAgnes.mock.calls[0][1]).toBe(60000)
     expect(messages[0].content).not.toContain('我不知道怎样说边界')
     expect(messages[1].content).toContain('待分析数据')
   })
@@ -49,7 +50,7 @@ describe('v2 Agnes generation', () => {
     expect(callAgnes).toHaveBeenCalledTimes(1)
   })
 
-  it('uses a 20 RPM-safe delay when a 429 omits Retry-After', async () => {
+  it('uses a capacity-safe backoff when a 429 omits Retry-After', async () => {
     const callAgnes = vi.fn().mockRejectedValue(Object.assign(new Error('too many requests'), { status: 429 }))
     const sleep = vi.fn().mockResolvedValue(undefined)
     const result = await generateDaoAnswerV2('我不知道怎样说边界', {
@@ -60,7 +61,7 @@ describe('v2 Agnes generation', () => {
     })
     expect(result).toMatchObject({ kind: 'unavailable', failureKind: 'rate_limited' })
     expect(result.attempts.map(attempt => attempt.httpStatus)).toEqual([429, 429])
-    expect(sleep).toHaveBeenCalledWith(3000)
+    expect(sleep).toHaveBeenCalledWith(15000)
   })
 
   it('respects the upstream Retry-After delay for a 429', async () => {
@@ -91,7 +92,7 @@ describe('v2 Agnes generation', () => {
 
     expect(result).toMatchObject({ kind: 'success', provider: 'agnes' })
     expect(result.attempts.map(attempt => attempt.failureKind ?? 'success')).toEqual(['empty', 'success'])
-    expect(sleep).toHaveBeenCalledWith(3000)
+    expect(sleep).toHaveBeenCalledWith(15000)
   })
 
   it('retries an invalid citation with a bounded server-authored correction', async () => {
@@ -115,7 +116,7 @@ describe('v2 Agnes generation', () => {
     expect(retryMessages[2]).toMatchObject({ role: 'user' })
     expect(retryMessages[2].content).toContain('直接复制 evidence.text')
     expect(retryMessages[2].content).not.toContain('我不知道怎样说边界')
-    expect(sleep).toHaveBeenCalledWith(3000)
+    expect(sleep).toHaveBeenCalledWith(15000)
   })
 
   it.each([0, 700, Number.NaN])('falls back to status when statusCode is invalid (%s)', async statusCode => {

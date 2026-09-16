@@ -69,10 +69,13 @@ export interface GenerateDaoAnswerDependencies {
   retrieve?: (question: string, repository: ApprovedCorpusRepository, limit: number) => Promise<RetrievalResult>
 }
 
-const CANDIDATE_TIMEOUT_MS = 30_000
-const TOTAL_GENERATION_BUDGET_MS = 45_000
+// Agnes may spend tens of seconds reasoning before it emits the final JSON.
+// Keep enough room for one paced retry without treating a slow real response
+// as unavailable or immediately colliding with the provider capacity pool.
+const CANDIDATE_TIMEOUT_MS = 60_000
+const TOTAL_GENERATION_BUDGET_MS = 140_000
 const MAX_AGNES_ATTEMPTS = 2
-const AGNES_FREE_TIER_MIN_INTERVAL_MS = 60_000 / 20
+const AGNES_RETRY_BACKOFF_MS = 15_000
 
 /**
  * The only v2 generation path. It never invokes DeepSeek or a static chapter
@@ -223,7 +226,7 @@ function retryAllowed(kind: AgnesFailureKind, attempt: number): boolean {
 
 function retryDelayMilliseconds(kind: AgnesFailureKind, retryAfter: number | null, random: () => number): number {
   if (kind === 'rate_limited' && retryAfter !== null) return retryAfter * 1000 + Math.floor(random() * 250)
-  return AGNES_FREE_TIER_MIN_INTERVAL_MS + Math.floor(random() * 250)
+  return AGNES_RETRY_BACKOFF_MS + Math.floor(random() * 250)
 }
 
 function httpStatus(error: unknown): number | undefined {
