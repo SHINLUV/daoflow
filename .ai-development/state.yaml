@@ -18,12 +18,12 @@ current_task:
     id: "AUTH_HALL_RAG_DELTA",
     description: "实现新增私人账户、同道大厅、可信经典 RAG、Agnes answer_v2 与问道输入框；旧技术验收不覆盖该增量",
     owner: "Delivery controller",
-    status: PRODUCTION_DEPLOYED_R4_FEATURE_GATES_BLOCKED,
+    status: PRODUCTION_DEPLOYED_AGNES_API_GATE_PASS_OTHER_GATES_PENDING,
   }
-execution_status: AUTH_HALL_RAG_PRODUCTION_DEPLOYED_PARTIAL
+execution_status: AUTH_HALL_RAG_PRODUCTION_AGNES_GATE_PASS_PARTIAL
 starting_commit: f3aa69376edd11b0895c8e58fe58274012fa9a1f
-current_commit: ab067cdca07dba51699b6790332697b7101aa8c1
-last_verified_commit: ab067cdca07dba51699b6790332697b7101aa8c1
+current_commit: 42ae7401dbf44eb147e1a840db98c8b0fef30fdb
+last_verified_commit: 42ae7401dbf44eb147e1a840db98c8b0fef30fdb
 gate_status:
   prd_complete: PASS
   prd_review: PASS
@@ -34,15 +34,15 @@ gate_status:
   development_entry: PASS
   implementation_complete: PASS
   engineering_verification: BLOCKED
-  independent_acceptance: BLOCKED
+  independent_acceptance: PARTIAL_AGNES_API_PASS_OTHER_GATES_PENDING
   production_deployment: PASS
   uat: NOT_EXECUTED
   pilot_readiness: NOT_EXECUTED
 readiness: { status: NOT_READY }
 blockers:
   - "LOCAL_DB_011_012_BACKUP_APPLY_VERIFY=PASS_WITH_RESTORE_SCOPE_LIMIT：保留数据副本和原库已前向应用011/012且关键计数不变；克隆恢复对realtime/vault有权限警告，不构成完整Supabase灾难恢复。证据见docs/redesign-v2/evidence/AH-P0/local-migration-011-012.md。"
-  - "CORPUS_APPROVAL_PENDING：候选语料 manifest 已有固定revision/hash和81章差异账本，但独立经典审核、许可留证和批准尚未完成；任何 RAG 读取必须保持 NOT_ELIGIBLE。"
-  - "PRODUCTION_RUNTIME_PARTIAL：候选 ab067cd 已部署；Caddy 可信代理、正式迁移、app 与 ask-worker 健康门已由生产和独立浏览器验证。真实邮件/OTP/MFA、双 JWT/RLS、真实 Agnes 与已批准语料仍未完成。"
+  - "CORPUS_CANDIDATE_MANIFEST_STALE：早期候选 manifest 仍保留 PENDING 作为历史账本；正式 release、独立经典审核和迁移已另行落盘，生产数据库为 approved version/document 各1、approved chunks 81。"
+  - "PRODUCTION_RUNTIME_PARTIAL：候选 42ae740 已部署；app、ask-worker、正式迁移、approved 经典库与真实 Agnes API/answer_v2 已由总控和未参与开发的智能体独立验证。真实邮件/OTP/MFA、双 JWT/RLS、大厅完整角色闭环和全产品浏览器验收仍未完成。"
   - "TWO_USER_RLS_HALL_REQUIRED：私人数据双 JWT 隔离、跨标签退出、大厅作者/他人/审核角色和注销级联尚无真实浏览器运行证据。"
   - "BUSINESS_UAT_PENDING：真实业务用户仍需自行确认其内容、流程和商业可用性；技术验收不代签。"
   - "PRODUCTION_DEPLOYMENT=PASS：远程生产迁移、版本切换和基础运行验收完成；此结果不替代真实用户业务 UAT。"
@@ -113,6 +113,26 @@ artifacts:
       path: docs/redesign-v2/reviews/ah-p0-production-independent-acceptance-r4.md,
       status: PARTIAL_FEATURE_GATES_BLOCKED,
     }
+  agnes_api_format_production:
+    {
+      path: docs/redesign-v2/evidence/AH-P0/42ae740/agnes-api-format-production.md,
+      status: PASS_SCOPE,
+    }
+  agnes_api_format_independent_acceptance:
+    {
+      path: docs/redesign-v2/reviews/2026-09-16-AGNES-API-FORMAT-INDEPENDENT-ACCEPTANCE.md,
+      status: PASS_SCOPE,
+    }
+  dao_corpus_release_manifest:
+    {
+      path: docs/redesign-v2/corpus/dao-de-jing-wang-bi-v1.release.json,
+      status: APPROVED,
+    }
+  dao_corpus_final_review:
+    {
+      path: docs/redesign-v2/reviews/2026-09-15-WANG-BI-CORPUS-FINAL-REVIEW.md,
+      status: PASS,
+    }
   dao_corpus_manifest:
     {
       path: docs/redesign-v2/corpus/dao-de-jing-wang-bi-v1.manifest.json,
@@ -175,9 +195,9 @@ verification:
     }
   api:
     {
-      status: PASS_WITH_EXTERNAL_BLOCKERS,
+      status: PASS_AGNES_API_SCOPE_OTHER_GATES_PENDING,
       evidence:
-        [docs/redesign-v2/evidence/AH-P0/615c53b/engineering-verification.md],
+        [docs/redesign-v2/evidence/AH-P0/615c53b/engineering-verification.md, docs/redesign-v2/evidence/AH-P0/42ae740/agnes-api-format-production.md],
     }
   e2e:
     {
@@ -187,26 +207,27 @@ verification:
     }
   runtime:
     {
-      status: PARTIAL_PRODUCTION_DEPLOYED,
+      status: PARTIAL_PRODUCTION_AGNES_GATE_PASS,
       evidence:
-        [docs/redesign-v2/evidence/AH-P0/615c53b/engineering-verification.md, docs/redesign-v2/evidence/AH-P0/6e21b17/runtime-gate-verification.md, docs/redesign-v2/evidence/AH-P0/ab067cd/production-deployment.md],
+        [docs/redesign-v2/evidence/AH-P0/615c53b/engineering-verification.md, docs/redesign-v2/evidence/AH-P0/6e21b17/runtime-gate-verification.md, docs/redesign-v2/evidence/AH-P0/ab067cd/production-deployment.md, docs/redesign-v2/evidence/AH-P0/42ae740/agnes-api-format-production.md],
     }
   independent_acceptance:
     {
-      status: BLOCKED,
+      status: PARTIAL_AGNES_API_PASS_OTHER_GATES_PENDING,
       evidence:
         [
           docs/redesign-v2/reviews/ah-p0-independent-acceptance.md,
           docs/redesign-v2/reviews/ah-p0-independent-reacceptance-r2.md,
           docs/redesign-v2/reviews/ah-p0-runtime-gates-independent-acceptance-r3.md,
           docs/redesign-v2/reviews/ah-p0-production-independent-acceptance-r4.md,
+          docs/redesign-v2/reviews/2026-09-16-AGNES-API-FORMAT-INDEPENDENT-ACCEPTANCE.md,
         ],
     }
   uat: { status: NOT_EXECUTED, evidence: [] }
 independent_review:
-  status: BLOCKED
-  report: docs/redesign-v2/reviews/ah-p0-production-independent-acceptance-r4.md
-  note: "R4 独立验收确认 ab067cd 已真实生产部署，页面、静态资源、可信代理、容器、worker 健康与迁移通过；approved corpus、真实 Agnes、认证/RLS/大厅闭环和 UAT 仍 BLOCKED，不能宣称完整功能通过。"
+  status: PARTIAL_AGNES_API_PASS_OTHER_GATES_PENDING
+  report: docs/redesign-v2/reviews/2026-09-16-AGNES-API-FORMAT-INDEPENDENT-ACCEPTANCE.md
+  note: "独立验收确认 42ae740 的真实 Agnes API、answer_v2 格式、approved 引用和生产运行通过；认证/RLS/大厅完整闭环、完整 E2E 和业务 UAT 仍不得外推为通过。"
 visual_polish:
   status: PASS
   candidate: 0a96cbf4ce98c2116ab8812495ce93f0a21bb0fa
@@ -216,6 +237,15 @@ visual_polish:
   visual_score: 92
   note: "本轮限定展示范围通过，不替代上述T09全产品验收记录；真实服务BLOCKED和BUSINESS_UAT_PENDING保持。"
 history:
+  - {
+      event: AGNES_API_FORMAT_PRODUCTION_ACCEPTANCE,
+      result: PASS_SCOPE,
+      reviewer: independent_reacceptance,
+      candidate: 42ae7401dbf44eb147e1a840db98c8b0fef30fdb,
+      evidence: docs/redesign-v2/evidence/AH-P0/42ae740/agnes-api-format-production.md,
+      report: docs/redesign-v2/reviews/2026-09-16-AGNES-API-FORMAT-INDEPENDENT-ACCEPTANCE.md,
+      note: "真实生产匿名问道由总控与未参与开发的验收智能体分别取得 HTTP 200、provider=agnes、answer_v2 answer 和三条 approved 引用；先前 citation 与重试 FAIL 均保留，其他产品门禁及 BUSINESS_UAT_PENDING 不变。",
+    }
   - {
       event: AUTH_HALL_RAG_PRODUCTION_DEPLOYMENT_R4,
       result: PARTIAL,
