@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { generateDaoAnswerV2 } from '../generateAnswerV2'
-import { RateLimitedError } from '../callModel'
+import { EmptyResponseError, RateLimitedError } from '../callModel'
 import type { ApprovedCorpusRepository } from '../../rag/types'
 
 const approvedRepository: ApprovedCorpusRepository = {
@@ -75,6 +75,23 @@ describe('v2 Agnes generation', () => {
 
     expect(result).toMatchObject({ kind: 'unavailable', failureKind: 'rate_limited', retryAfterSeconds: 7 })
     expect(sleep).toHaveBeenCalledWith(7000)
+  })
+
+  it('retries one transient empty Agnes response instead of failing immediately', async () => {
+    const callAgnes = vi.fn()
+      .mockRejectedValueOnce(new EmptyResponseError('agnes'))
+      .mockResolvedValueOnce(modelResponse())
+    const sleep = vi.fn().mockResolvedValue(undefined)
+    const result = await generateDaoAnswerV2('我不知道怎样说边界', {
+      corpusRepository: approvedRepository,
+      callAgnes,
+      sleep,
+      random: () => 0,
+    })
+
+    expect(result).toMatchObject({ kind: 'success', provider: 'agnes' })
+    expect(result.attempts.map(attempt => attempt.failureKind ?? 'success')).toEqual(['empty', 'success'])
+    expect(sleep).toHaveBeenCalledWith(250)
   })
 
   it('retries an invalid citation with a bounded server-authored correction', async () => {

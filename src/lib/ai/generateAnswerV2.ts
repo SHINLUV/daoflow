@@ -218,7 +218,7 @@ function generationFailureKind(error: unknown): AgnesFailureKind {
 
 function retryAllowed(kind: AgnesFailureKind, attempt: number): boolean {
   if (attempt >= MAX_AGNES_ATTEMPTS) return false
-  return kind === 'rate_limited' || kind === 'timeout' || kind === 'network' || kind === 'server' || kind === 'invalid_json' || kind === 'invalid_citation' || kind === 'format_error'
+  return kind === 'rate_limited' || kind === 'timeout' || kind === 'network' || kind === 'server' || kind === 'empty' || kind === 'invalid_json' || kind === 'invalid_citation' || kind === 'format_error'
 }
 
 function retryDelayMilliseconds(kind: AgnesFailureKind, retryAfter: number | null, random: () => number): number {
