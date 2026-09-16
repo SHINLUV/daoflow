@@ -58,7 +58,7 @@ published --source delete trigger--> withdrawn
 
 检索先以审核主题词 + PostgreSQL `pg_trgm` 词法召回实现；`pg_trgm`/向量扩展和资源基准都要实测。pgvector + BGE-M3 只在 CPU、RAM、启动、延迟和不影响 ERP 的隔离容量证明后启用；当前环境不具备证明，向量路径明确 BLOCKED。候选经 RRF、去重和章号多样性后传入 3–5 chunks。模型返回最多三条引文；服务器拒绝未知字段、拒绝没有引文的 `answer`，并把 quote 与相同 chunk/version 原文做限定空白/标点规范后的精确子串验证。修复格式最多一次，计入模型预算。
 
-服务端固定采用 17 号 `dao-answer-v2.1` system message；问题和检索块放在低可信 data message。`AnswerV2` 按 19 号字段保存到 `answer_v2` JSONB，另存服务器生成的 `schema_version=2`、actual provider/model、prompt/corpus version、request ID、generated time、validation state 和脱敏 attempt 摘要。历史 v1 只读兼容，不能重新标成 v2 或 Agnes。回答页面在字段存在时顺序显示“看见困惑 / 读懂原文 / 照见此刻 / 也看另一面 / 可以试试 / 反思问题”。
+服务端固定采用 17 号当前版本 `dao-answer-v2.2-tao-voice` system message；问题和检索块放在低可信 data message。`AnswerV2` 按 19 号字段保存到 `answer_v2` JSONB，另存服务器生成的 `schema_version=2`、actual provider/model、prompt/corpus version、request ID、generated time、validation state 和脱敏 attempt 摘要。历史 v1/v2.1 只读兼容，不能重新标成新提示词版本或 Agnes。回答页面在字段存在时顺序显示“看见困惑 / 读懂原文 / 照见此刻 / 也看另一面 / 可以试试 / 反思问题”。
 
 ## 4. 持久问道 worker 与预算
 
