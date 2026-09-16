@@ -152,18 +152,15 @@ export function quoteMatchesEvidence(quote: string, evidenceText: string): boole
  * the approved source text and therefore remains exact, contiguous evidence.
  */
 export function canonicalApprovedQuote(quote: string, evidenceText: string): string | null {
-  if (quoteMatchesEvidence(quote, evidenceText)) return quote.trim()
+  const segments = quote.split(/…+|\.{3,}/).map(segment => segment.trim())
+  if (segments.some(segment => normalizeQuoteForVerification(segment).length < MIN_CANONICAL_QUOTE_LENGTH)) return null
 
-  const candidates = [quote, ...quote.split(/…+|\.{3,}/)]
-    .map(candidate => candidate.trim())
-    .filter(candidate => normalizeQuoteForVerification(candidate).length >= MIN_CANONICAL_QUOTE_LENGTH)
-    .sort((left, right) => normalizeQuoteForVerification(right).length - normalizeQuoteForVerification(left).length)
+  const matches = segments.map(segment => locateSimplifiedQuote(segment, evidenceText))
+  if (matches.some((match): match is null => match === null)) return null
 
-  for (const candidate of candidates) {
-    const matched = locateSimplifiedQuote(candidate, evidenceText)
-    if (matched) return matched
-  }
-  return null
+  return (matches as string[]).sort(
+    (left, right) => normalizeQuoteForVerification(right).length - normalizeQuoteForVerification(left).length,
+  )[0] ?? null
 }
 
 function locateSimplifiedQuote(quote: string, evidenceText: string): string | null {

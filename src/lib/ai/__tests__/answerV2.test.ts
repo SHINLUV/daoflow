@@ -44,6 +44,15 @@ describe('AnswerV2 server validation', () => {
     expect(canonical).toBe('聖人無為故無敗，無執故無失')
     expect(source).toContain(canonical)
     expect(canonicalApprovedQuote('这是来源中完全不存在的伪造句子', source)).toBeNull()
+    expect(canonicalApprovedQuote('这是完全伪造的句子……圣人无为故无败，无执故无失。', source)).toBeNull()
+  })
+
+  it('always returns an approved source slice after whitespace and punctuation normalization', () => {
+    const source = '聖人無為故無敗，無執故無失。'
+    const canonical = canonicalApprovedQuote('聖人 無為故無敗，無執故無失。', source)
+
+    expect(canonical).toBe('聖人無為故無敗，無執故無失')
+    expect(source).toContain(canonical)
   })
 
   it('canonicalizes a model citation before returning the validated answer', () => {
