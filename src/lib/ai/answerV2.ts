@@ -32,26 +32,71 @@ const MAX_GENERATED_BODY_LENGTH = 1200
 
 /**
  * Parse only one JSON object and then enforce the v2.1 contract independently
- * of the model. Agnes may wrap an otherwise exact object in one JSON code
- * fence, so that single presentation wrapper is tolerated; surrounding prose,
- * multiple blocks and partial-object extraction remain rejected.
+ * of the model. Presentation text and markdown fences are tolerated only when
+ * they contain exactly one syntactically valid JSON object. Ambiguous output
+ * with multiple objects is rejected instead of guessing which one is trusted.
  */
 export function parseAndValidateAnswerV2(raw: string, evidence: RetrievalEvidence[]): AnswerV2 {
   if (!raw || raw.trim() === '') throw new FormatError('Agnes 返回内容为空')
 
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(unwrapSingleJsonFence(raw))
-  } catch {
-    throw new FormatError('Agnes 返回不是合法 JSON')
-  }
+  const parsed = parseUniqueJsonObject(raw)
   return validateAnswerV2(parsed, evidence)
 }
 
-function unwrapSingleJsonFence(raw: string): string {
+function parseUniqueJsonObject(raw: string): unknown {
   const trimmed = raw.trim()
   const fenced = trimmed.match(/^```(?:json)?[ \t]*\r?\n([\s\S]*?)\r?\n```$/i)
-  return fenced ? fenced[1].trim() : trimmed
+  const direct = tryParseJson(fenced ? fenced[1].trim() : trimmed)
+  if (direct !== undefined) return direct
+
+  const candidates = extractJsonObjects(trimmed)
+  if (candidates.length === 0) throw new FormatError('Agnes 返回不是合法 JSON')
+  if (candidates.length !== 1) throw new FormatError('Agnes 返回无法确定唯一合法 JSON 对象')
+  return candidates[0]
+}
+
+function tryParseJson(value: string): unknown | undefined {
+  try {
+    return JSON.parse(value) as unknown
+  } catch {
+    return undefined
+  }
+}
+
+/** Find complete object spans while ignoring braces escaped inside JSON strings. */
+function extractJsonObjects(raw: string): unknown[] {
+  const candidates: unknown[] = []
+  for (let start = 0; start < raw.length; start += 1) {
+    if (raw[start] !== '{') continue
+
+    let depth = 0
+    let inString = false
+    let escaped = false
+    let end = -1
+    for (let index = start; index < raw.length; index += 1) {
+      const character = raw[index]
+      if (inString) {
+        if (escaped) escaped = false
+        else if (character === '\\') escaped = true
+        else if (character === '"') inString = false
+        continue
+      }
+      if (character === '"') inString = true
+      else if (character === '{') depth += 1
+      else if (character === '}' && --depth === 0) {
+        end = index
+        break
+      }
+    }
+    if (end < 0) continue
+
+    const parsed = tryParseJson(raw.slice(start, end + 1))
+    if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+      candidates.push(parsed)
+      start = end
+    }
+  }
+  return candidates
 }
 
 export function validateAnswerV2(value: unknown, evidence: RetrievalEvidence[]): AnswerV2 {

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { generateDaoAnswerV2 } from '../generateAnswerV2'
+import { RateLimitedError } from '../callModel'
 import type { ApprovedCorpusRepository } from '../../rag/types'
 
 const approvedRepository: ApprovedCorpusRepository = {
@@ -48,7 +49,7 @@ describe('v2 Agnes generation', () => {
     expect(callAgnes).toHaveBeenCalledTimes(1)
   })
 
-  it('retains an upstream HTTP status in redacted attempts', async () => {
+  it('uses a 20 RPM-safe delay when a 429 omits Retry-After', async () => {
     const callAgnes = vi.fn().mockRejectedValue(Object.assign(new Error('too many requests'), { status: 429 }))
     const sleep = vi.fn().mockResolvedValue(undefined)
     const result = await generateDaoAnswerV2('我不知道怎样说边界', {
@@ -59,7 +60,21 @@ describe('v2 Agnes generation', () => {
     })
     expect(result).toMatchObject({ kind: 'unavailable', failureKind: 'rate_limited' })
     expect(result.attempts.map(attempt => attempt.httpStatus)).toEqual([429, 429])
-    expect(sleep).toHaveBeenCalledWith(250)
+    expect(sleep).toHaveBeenCalledWith(3000)
+  })
+
+  it('respects the upstream Retry-After delay for a 429', async () => {
+    const callAgnes = vi.fn().mockRejectedValue(new RateLimitedError('too many requests', 'agnes', 7))
+    const sleep = vi.fn().mockResolvedValue(undefined)
+    const result = await generateDaoAnswerV2('我不知道怎样说边界', {
+      corpusRepository: approvedRepository,
+      callAgnes,
+      sleep,
+      random: () => 0,
+    })
+
+    expect(result).toMatchObject({ kind: 'unavailable', failureKind: 'rate_limited', retryAfterSeconds: 7 })
+    expect(sleep).toHaveBeenCalledWith(7000)
   })
 
   it('retries an invalid citation with a bounded server-authored correction', async () => {

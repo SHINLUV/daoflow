@@ -18,11 +18,18 @@ describe('AnswerV2 server validation', () => {
     expect(parsed.citations[0].chapter).toBe(8)
   })
 
-  it('accepts only an otherwise exact JSON markdown fence emitted by Agnes', () => {
+  it('accepts an otherwise exact JSON markdown fence emitted by Agnes', () => {
     const parsed = parseAndValidateAnswerV2(`\n\n\`\`\`json\n${answer()}\n\`\`\``, evidence)
     expect(parsed.citations[0].chunk_id).toBe('wb-001')
+  })
 
-    expect(() => parseAndValidateAnswerV2(`说明如下：\n\`\`\`json\n${answer()}\n\`\`\``, evidence)).toThrow(/合法 JSON/)
+  it('safely extracts one JSON object when Agnes adds an explanation around it', () => {
+    const parsed = parseAndValidateAnswerV2(`回答如下：\n\`\`\`json\n${answer()}\n\`\`\`\n以上是结构化结果。`, evidence)
+    expect(parsed.summary).toBe('你正在权衡如何既保持边界又减少消耗。')
+  })
+
+  it('rejects ambiguous output containing more than one JSON object', () => {
+    expect(() => parseAndValidateAnswerV2(`${answer()}\n备用：${answer()}`, evidence)).toThrow(/唯一.*JSON/)
   })
 
   it('allows only predefined whitespace and punctuation differences in quote proof', () => {

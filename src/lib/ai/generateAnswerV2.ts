@@ -72,6 +72,7 @@ export interface GenerateDaoAnswerDependencies {
 const CANDIDATE_TIMEOUT_MS = 30_000
 const TOTAL_GENERATION_BUDGET_MS = 45_000
 const MAX_AGNES_ATTEMPTS = 2
+const AGNES_FREE_TIER_MIN_INTERVAL_MS = 60_000 / 20
 
 /**
  * The only v2 generation path. It never invokes DeepSeek or a static chapter
@@ -211,7 +212,7 @@ function generationFailureKind(error: unknown): AgnesFailureKind {
   const classified = classifyAgnesFailure(error)
   if (classified !== 'format_error') return classified
   if (error instanceof Error && /精确片段|章节不匹配|approved evidence/.test(error.message)) return 'invalid_citation'
-  if (error instanceof Error && /不是合法 JSON/.test(error.message)) return 'invalid_json'
+  if (error instanceof Error && /不是合法 JSON|唯一合法 JSON/.test(error.message)) return 'invalid_json'
   return 'format_error'
 }
 
@@ -222,6 +223,7 @@ function retryAllowed(kind: AgnesFailureKind, attempt: number): boolean {
 
 function retryDelayMilliseconds(kind: AgnesFailureKind, retryAfter: number | null, random: () => number): number {
   if (kind === 'rate_limited' && retryAfter !== null) return retryAfter * 1000 + Math.floor(random() * 250)
+  if (kind === 'rate_limited') return AGNES_FREE_TIER_MIN_INTERVAL_MS + Math.floor(random() * 250)
   return 250 + Math.floor(random() * 250)
 }
 

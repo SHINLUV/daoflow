@@ -174,6 +174,7 @@ export async function callModel(
       messages,
       temperature,
       max_tokens: maxTokens,
+      ...(provider === 'agnes' ? { response_format: { type: 'json_object' as const } } : {}),
     })
 
     const content = response.choices[0]?.message?.content
@@ -232,7 +233,12 @@ function readRetryAfterSeconds(error: Record<string, unknown>): number | undefin
   const raw = headers?.get?.('retry-after')
   if (!raw) return undefined
   const seconds = Number(raw)
-  return Number.isFinite(seconds) && seconds >= 0 ? Math.ceil(seconds) : undefined
+  if (Number.isFinite(seconds) && seconds >= 0) return Math.ceil(seconds)
+
+  const retryAt = Date.parse(raw)
+  return Number.isFinite(retryAt)
+    ? Math.max(0, Math.ceil((retryAt - Date.now()) / 1000))
+    : undefined
 }
 
 function isNetworkFailure(name: string, code: string, message: string): boolean {
