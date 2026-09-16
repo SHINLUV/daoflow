@@ -27,7 +27,7 @@ describe('Dao answer system prompt', () => {
     const question = '面对变化时怎样继续行动？'
     const messages = buildDaoAnswerMessages(question, evidence)
 
-    expect(DAO_ANSWER_PROMPT_VERSION).toBe('dao-answer-v2.2-tao-voice')
+    expect(DAO_ANSWER_PROMPT_VERSION).toBe('dao-answer-v2.2.1-tao-voice')
     expect(messages[0]).toEqual({ role: 'system', content: DAO_ANSWER_V22_SYSTEM_PROMPT })
     expect(messages[0].content).not.toContain(question)
     expect(messages[1].role).toBe('user')
@@ -42,6 +42,8 @@ describe('Dao answer system prompt', () => {
     expect(DAO_ANSWER_V22_SYSTEM_PROMPT).toContain('不是消极不做')
     expect(DAO_ANSWER_V22_SYSTEM_PROMPT).toContain('summary：先照见用户此刻的具体矛盾')
     expect(DAO_ANSWER_V22_SYSTEM_PROMPT).toContain('boundary：指出这种理解的反面误用')
+    expect(DAO_ANSWER_V22_SYSTEM_PROMPT).toContain('summary 40–100字')
+    expect(DAO_ANSWER_V22_SYSTEM_PROMPT).toContain('输出必须精确匹配以下 JSON 形状')
     expect(DAO_ANSWER_V22_SYSTEM_PROMPT).toContain('只输出一个合法JSON对象')
   })
 

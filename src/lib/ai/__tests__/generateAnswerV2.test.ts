@@ -61,7 +61,7 @@ describe('v2 Agnes generation', () => {
     })
     expect(result).toMatchObject({ kind: 'unavailable', failureKind: 'rate_limited' })
     expect(result.attempts.map(attempt => attempt.httpStatus)).toEqual([429, 429])
-    expect(sleep).toHaveBeenCalledWith(15000)
+    expect(sleep).toHaveBeenCalledWith(60000)
   })
 
   it('respects the upstream Retry-After delay for a 429', async () => {
@@ -92,7 +92,31 @@ describe('v2 Agnes generation', () => {
 
     expect(result).toMatchObject({ kind: 'success', provider: 'agnes' })
     expect(result.attempts.map(attempt => attempt.failureKind ?? 'success')).toEqual(['empty', 'success'])
-    expect(sleep).toHaveBeenCalledWith(15000)
+    expect(sleep).toHaveBeenCalledWith(60000)
+  })
+
+  it('preserves a full second attempt after a slow invalid model response and cooldown', async () => {
+    let clock = 0
+    const timeouts: number[] = []
+    const callAgnes = vi.fn().mockImplementation(async (_messages, timeoutMs: number) => {
+      timeouts.push(timeoutMs)
+      clock += 60000
+      if (timeouts.length === 1) throw new EmptyResponseError('agnes')
+      return modelResponse()
+    })
+    const sleep = vi.fn().mockImplementation(async (milliseconds: number) => { clock += milliseconds })
+    const result = await generateDaoAnswerV2('我不知道怎样说边界', {
+      corpusRepository: approvedRepository,
+      callAgnes,
+      sleep,
+      now: () => new Date(clock),
+      random: () => 0,
+    })
+
+    expect(result).toMatchObject({ kind: 'success', provider: 'agnes' })
+    expect(timeouts).toEqual([60000, 60000])
+    expect(sleep).toHaveBeenCalledWith(60000)
+    expect(clock).toBe(180000)
   })
 
   it('retries an invalid citation with a bounded server-authored correction', async () => {
@@ -116,7 +140,7 @@ describe('v2 Agnes generation', () => {
     expect(retryMessages[2]).toMatchObject({ role: 'user' })
     expect(retryMessages[2].content).toContain('直接复制 evidence.text')
     expect(retryMessages[2].content).not.toContain('我不知道怎样说边界')
-    expect(sleep).toHaveBeenCalledWith(15000)
+    expect(sleep).toHaveBeenCalledWith(60000)
   })
 
   it.each([0, 700, Number.NaN])('falls back to status when statusCode is invalid (%s)', async statusCode => {

@@ -73,9 +73,10 @@ export interface GenerateDaoAnswerDependencies {
 // Keep enough room for one paced retry without treating a slow real response
 // as unavailable or immediately colliding with the provider capacity pool.
 const CANDIDATE_TIMEOUT_MS = 60_000
-const TOTAL_GENERATION_BUDGET_MS = 140_000
+const TOTAL_GENERATION_BUDGET_MS = 190_000
 const MAX_AGNES_ATTEMPTS = 2
 const AGNES_RETRY_BACKOFF_MS = 15_000
+const AGNES_MODEL_OUTPUT_RETRY_BACKOFF_MS = 60_000
 
 /**
  * The only v2 generation path. It never invokes DeepSeek or a static chapter
@@ -226,6 +227,9 @@ function retryAllowed(kind: AgnesFailureKind, attempt: number): boolean {
 
 function retryDelayMilliseconds(kind: AgnesFailureKind, retryAfter: number | null, random: () => number): number {
   if (kind === 'rate_limited' && retryAfter !== null) return retryAfter * 1000 + Math.floor(random() * 250)
+  if (kind === 'rate_limited' || kind === 'empty' || repairableModelOutput(kind)) {
+    return AGNES_MODEL_OUTPUT_RETRY_BACKOFF_MS + Math.floor(random() * 250)
+  }
   return AGNES_RETRY_BACKOFF_MS + Math.floor(random() * 250)
 }
 
