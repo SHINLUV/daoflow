@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseAndValidateAnswerV2, quoteMatchesEvidence } from '../answerV2'
+import { canonicalApprovedQuote, parseAndValidateAnswerV2, quoteMatchesEvidence } from '../answerV2'
 import type { RetrievalEvidence } from '../../rag/types'
 
 const evidence: RetrievalEvidence[] = [{
@@ -35,6 +35,24 @@ describe('AnswerV2 server validation', () => {
   it('allows only predefined whitespace and punctuation differences in quote proof', () => {
     expect(quoteMatchesEvidence('水善利万物 而不争。', evidence[0].text)).toBe(true)
     expect(quoteMatchesEvidence('水善害万物而不争', evidence[0].text)).toBe(false)
+  })
+
+  it('uses Simplified Chinese only to locate and return an exact approved Traditional Chinese span', () => {
+    const source = '為之於未有，治之於未亂。合抱之木，生於毫末。聖人無為故無敗，無執故無失。'
+    const canonical = canonicalApprovedQuote('为之于未有，治之于未乱。……圣人无为故无败，无执故无失。', source)
+
+    expect(canonical).toBe('聖人無為故無敗，無執故無失')
+    expect(source).toContain(canonical)
+    expect(canonicalApprovedQuote('这是来源中完全不存在的伪造句子', source)).toBeNull()
+  })
+
+  it('canonicalizes a model citation before returning the validated answer', () => {
+    const traditionalEvidence: RetrievalEvidence[] = [{ ...evidence[0], text: '禍兮福之所倚，福兮禍之所伏。孰知其極？' }]
+    const parsed = parseAndValidateAnswerV2(answer({
+      citations: [{ chunk_id: 'wb-001', chapter: 8, quote: '祸兮福之所倚，福兮祸之所伏。孰知其极？', explanation: '提醒我们承认变化。' }],
+    }), traditionalEvidence)
+
+    expect(parsed.citations[0].quote).toBe('禍兮福之所倚，福兮禍之所伏。孰知其極')
   })
 
   it('rejects extra output fields and a fabricated chunk id', () => {

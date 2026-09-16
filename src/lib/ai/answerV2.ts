@@ -1,5 +1,6 @@
 import { FormatError } from './callModel'
 import type { RetrievalEvidence } from '@/lib/rag/types'
+import OpenCC from 'opencc-js'
 
 export const ANSWER_V2_SCHEMA_VERSION = 2 as const
 
@@ -29,6 +30,9 @@ const ANSWER_FIELDS = new Set([
 const CITATION_FIELDS = new Set(['chunk_id', 'chapter', 'quote', 'explanation'])
 const MAX_FIELD_LENGTH = 2400
 const MAX_GENERATED_BODY_LENGTH = 1200
+const MIN_CANONICAL_QUOTE_LENGTH = 4
+const IGNORED_QUOTE_CHARACTER = /[\s\u3000，。；、：！？“”‘’「」『』（）()《》〈〉…—\-]/
+const traditionalToSimplified = OpenCC.Converter({ from: 't', to: 'cn' })
 
 /**
  * Parse only one JSON object and then enforce the v2.1 contract independently
@@ -141,6 +145,60 @@ export function quoteMatchesEvidence(quote: string, evidenceText: string): boole
   return normalizedQuote.length > 0 && normalizeQuoteForVerification(evidenceText).includes(normalizedQuote)
 }
 
+/**
+ * Agnes sometimes converts an approved Traditional Chinese quote to Simplified
+ * Chinese or joins two source spans with an ellipsis. Conversion is used only
+ * to locate a sufficiently long span; the returned quote is always sliced from
+ * the approved source text and therefore remains exact, contiguous evidence.
+ */
+export function canonicalApprovedQuote(quote: string, evidenceText: string): string | null {
+  if (quoteMatchesEvidence(quote, evidenceText)) return quote.trim()
+
+  const candidates = [quote, ...quote.split(/…+|\.{3,}/)]
+    .map(candidate => candidate.trim())
+    .filter(candidate => normalizeQuoteForVerification(candidate).length >= MIN_CANONICAL_QUOTE_LENGTH)
+    .sort((left, right) => normalizeQuoteForVerification(right).length - normalizeQuoteForVerification(left).length)
+
+  for (const candidate of candidates) {
+    const matched = locateSimplifiedQuote(candidate, evidenceText)
+    if (matched) return matched
+  }
+  return null
+}
+
+function locateSimplifiedQuote(quote: string, evidenceText: string): string | null {
+  const source = quoteSearchIndex(evidenceText)
+  const query = Array.from(traditionalToSimplified(normalizeQuoteForVerification(quote)))
+  if (query.length < MIN_CANONICAL_QUOTE_LENGTH) return null
+
+  const simplifiedSource = Array.from(traditionalToSimplified(source.normalized))
+  // Keep the source-position proof fail-closed if a converter ever expands or
+  // contracts this corpus text rather than mapping it character-for-character.
+  if (simplifiedSource.length !== source.offsets.length) return null
+
+  const position = simplifiedSource.join('').indexOf(query.join(''))
+  if (position < 0) return null
+  const start = source.offsets[position]
+  const lastOffset = source.offsets[position + query.length - 1]
+  if (start === undefined || lastOffset === undefined) return null
+  const lastCharacter = String.fromCodePoint(evidenceText.codePointAt(lastOffset) ?? 0)
+  return evidenceText.slice(start, lastOffset + lastCharacter.length).trim()
+}
+
+function quoteSearchIndex(value: string): { normalized: string; offsets: number[] } {
+  const characters: string[] = []
+  const offsets: number[] = []
+  for (let offset = 0; offset < value.length;) {
+    const character = String.fromCodePoint(value.codePointAt(offset) ?? 0)
+    if (!IGNORED_QUOTE_CHARACTER.test(character)) {
+      characters.push(character.normalize('NFC'))
+      offsets.push(offset)
+    }
+    offset += character.length
+  }
+  return { normalized: characters.join(''), offsets }
+}
+
 function citationValues(value: unknown, evidence: RetrievalEvidence[]): AnswerCitationV2[] {
   if (!Array.isArray(value) || value.length > 3) throw new FormatError('citations 必须是最多 3 条的数组')
   const approved = new Map(evidence.filter(item => item.reviewStatus === 'approved').map(item => [item.chunkId, item]))
@@ -156,8 +214,9 @@ function citationValues(value: unknown, evidence: RetrievalEvidence[]): AnswerCi
     if (!source) throw new FormatError(`引用 ${chunk_id} 不属于当前 approved evidence`)
     const chapter = integerValue(citation.chapter, `citations[${index}].chapter`)
     if (chapter !== source.chapter || chapter < 1 || chapter > 81) throw new FormatError(`引用 ${chunk_id} 的章节不匹配`)
-    const quote = textValue(citation.quote, `citations[${index}].quote`)
-    if (!quoteMatchesEvidence(quote, source.text)) throw new FormatError(`引用 ${chunk_id} 不是原文的精确片段`)
+    const modelQuote = textValue(citation.quote, `citations[${index}].quote`)
+    const quote = canonicalApprovedQuote(modelQuote, source.text)
+    if (!quote) throw new FormatError(`引用 ${chunk_id} 不是原文的精确片段`)
     return { chunk_id, chapter, quote, explanation: textValue(citation.explanation, `citations[${index}].explanation`) }
   })
 }

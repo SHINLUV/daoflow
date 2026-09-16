@@ -97,7 +97,7 @@ describe('v2 Agnes generation', () => {
   it('retries an invalid citation with a bounded server-authored correction', async () => {
     const invalid = JSON.stringify({
       ...JSON.parse(modelResponse()),
-      citations: [{ chunk_id: 'wb-008', chapter: 8, quote: '水善利萬物而不爭', explanation: '字形被模型改写。' }],
+      citations: [{ chunk_id: 'wb-008', chapter: 8, quote: '水善伤害万物而争', explanation: '这段文字并非来源原句。' }],
     })
     const callAgnes = vi.fn().mockResolvedValueOnce(invalid).mockResolvedValueOnce(modelResponse())
     const sleep = vi.fn().mockResolvedValue(undefined)
