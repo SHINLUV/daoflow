@@ -91,7 +91,7 @@ describe('v2 Agnes generation', () => {
 
     expect(result).toMatchObject({ kind: 'success', provider: 'agnes' })
     expect(result.attempts.map(attempt => attempt.failureKind ?? 'success')).toEqual(['empty', 'success'])
-    expect(sleep).toHaveBeenCalledWith(250)
+    expect(sleep).toHaveBeenCalledWith(3000)
   })
 
   it('retries an invalid citation with a bounded server-authored correction', async () => {
@@ -100,10 +100,11 @@ describe('v2 Agnes generation', () => {
       citations: [{ chunk_id: 'wb-008', chapter: 8, quote: '水善利萬物而不爭', explanation: '字形被模型改写。' }],
     })
     const callAgnes = vi.fn().mockResolvedValueOnce(invalid).mockResolvedValueOnce(modelResponse())
+    const sleep = vi.fn().mockResolvedValue(undefined)
     const result = await generateDaoAnswerV2('我不知道怎样说边界', {
       corpusRepository: approvedRepository,
       callAgnes,
-      sleep: vi.fn().mockResolvedValue(undefined),
+      sleep,
       random: () => 0,
     })
 
@@ -114,6 +115,7 @@ describe('v2 Agnes generation', () => {
     expect(retryMessages[2]).toMatchObject({ role: 'user' })
     expect(retryMessages[2].content).toContain('直接复制 evidence.text')
     expect(retryMessages[2].content).not.toContain('我不知道怎样说边界')
+    expect(sleep).toHaveBeenCalledWith(3000)
   })
 
   it.each([0, 700, Number.NaN])('falls back to status when statusCode is invalid (%s)', async statusCode => {

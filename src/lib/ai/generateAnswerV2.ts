@@ -223,8 +223,7 @@ function retryAllowed(kind: AgnesFailureKind, attempt: number): boolean {
 
 function retryDelayMilliseconds(kind: AgnesFailureKind, retryAfter: number | null, random: () => number): number {
   if (kind === 'rate_limited' && retryAfter !== null) return retryAfter * 1000 + Math.floor(random() * 250)
-  if (kind === 'rate_limited') return AGNES_FREE_TIER_MIN_INTERVAL_MS + Math.floor(random() * 250)
-  return 250 + Math.floor(random() * 250)
+  return AGNES_FREE_TIER_MIN_INTERVAL_MS + Math.floor(random() * 250)
 }
 
 function httpStatus(error: unknown): number | undefined {
