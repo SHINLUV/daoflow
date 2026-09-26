@@ -3,7 +3,8 @@ import { parseReportInput, parseUuid } from '@/lib/hall/contracts'
 import { hallError, hallJson, inputError, readJson, requestId, requireHallMutationProtection } from '@/lib/hall/http'
 import { hallServiceHttpError, reportHallPublication } from '@/lib/hall/service'
 
-export async function POST(request: NextRequest, { params }: { params: { publicId: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ publicId: string }> }) {
+  const params = await props.params;
   const id = requestId()
   const protectionError = requireHallMutationProtection(request)
   if (protectionError) return hallError(protectionError, id)

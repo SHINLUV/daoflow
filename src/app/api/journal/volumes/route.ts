@@ -8,7 +8,7 @@ const fail = (status: number, code: string, message: string, requestId: string) 
 
 async function auth(requestId: string) {
   if (!isSupabaseConfigured) return { response: fail(503, 'SUPABASE_UNAVAILABLE', '私人卷册服务尚未配置。', requestId) }
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
   return error || !user ? { response: fail(401, 'AUTH_REQUIRED', '请先登录后管理卷册。', requestId) } : { supabase, user }
 }

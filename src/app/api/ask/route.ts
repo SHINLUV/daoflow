@@ -4,10 +4,12 @@ import { AskInputError, parseAskInput } from '@/lib/journal/ask-requests'
 import { verifyMutationRequest } from '@/lib/auth/http'
 import { generateDaoAnswerV2 } from '@/lib/ai/generateAnswerV2'
 import { createConfiguredCorpusRepository, hasAskWorkerRunnerConfiguration, releaseAnonymousAsk, reserveAnonymousAsk } from '@/lib/ask-worker/runtime'
+import { scheduleVercelAskWorker } from '@/lib/ask-worker/vercel'
 import type { AskAnswerResponse } from '@/lib/ask-worker/answerResponse'
 import { AskRequestRpcError, enqueueAskWorkerRequest, hasAskServiceConfiguration } from '@/app/api/journal/ask-requests/server'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 300
 
 function error(status: number, code: string, message: string, requestId: string, retryAfter?: number) {
   return NextResponse.json({ error: { code, message }, requestId }, {
@@ -36,7 +38,7 @@ export async function POST(request: NextRequest) {
   const hasOwnedLink = Boolean(input.sourceEntryId || input.volumeId)
   if (!isSupabaseConfigured) return error(503, 'ASK_AUTH_UNAVAILABLE', '问道身份服务尚未配置，未调用模型。', requestId)
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
     if (hasOwnedLink) return error(401, 'AUTH_REQUIRED', '请先登录后确认来源记录；未调用模型。', requestId)
@@ -47,6 +49,7 @@ export async function POST(request: NextRequest) {
   try {
     const queued = await enqueueAskWorkerRequest(user.id, { ...input, requestId })
     if (!queued?.request_id || !queued.state) return error(503, 'ASK_QUEUE_UNAVAILABLE', '暂时无法建立可恢复的问道请求。', requestId)
+    scheduleVercelAskWorker()
     return NextResponse.json({ requestId: queued.request_id, state: queued.state }, {
       status: 202,
       headers: { 'Cache-Control': 'no-store', 'Retry-After': '3' },

@@ -5,6 +5,9 @@ const e2eDistDir = process.env.DAOFLOW_E2E_DIST_DIR === 'output/playwright/.next
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  images: {
+    qualities: [40, 45, 75],
+  },
   // Playwright's development server must never replace the standalone build
   // that a parallel local-runtime verification is serving.
   distDir: e2eDistDir,

@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { announceAuthChange, AuthApiError, getAuthSession, postAuth } from '@/lib/auth/browser'
 import type { AuthSessionInfo } from '@/lib/auth/contracts'
 import { AuthNotice, AuthPageFrame } from '../_components/AuthPageFrame'
@@ -12,6 +13,7 @@ type Enrollment = { factorId: string; qrCode: string }
 async function readJson<T>(response: Response): Promise<T> { return response.json() as Promise<T> }
 
 export default function SecurityPage() {
+  const router = useRouter()
   const [session, setSession] = useState<AuthSessionInfo | null>(null)
   const [factors, setFactors] = useState<Factor[]>([])
   const [enrollment, setEnrollment] = useState<Enrollment | null>(null)
@@ -60,7 +62,7 @@ export default function SecurityPage() {
   }
   async function signOut(all: boolean) {
     setBusy(true); setError(false); setMessage('')
-    try { await postAuth(all ? '/api/auth/sign-out-all' : '/api/auth/sign-out'); announceAuthChange(); window.location.assign('/auth/login') }
+    try { await postAuth(all ? '/api/auth/sign-out-all' : '/api/auth/sign-out'); announceAuthChange(); router.push('/auth/login'); router.refresh() }
     catch (reason) { setError(true); setMessage(reason instanceof AuthApiError ? reason.message : '退出暂时未完成。') }
     finally { setBusy(false) }
   }

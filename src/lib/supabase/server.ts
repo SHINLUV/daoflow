@@ -11,9 +11,9 @@ export const isSupabaseConfigured = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
-export function createClient() {
-  const cookieStore = cookies()
-  const requestHost = headers().get('host')
+export async function createClient() {
+  const cookieStore = await cookies()
+  const requestHost = (await headers()).get('host')
 
   return createServerClient(
     process.env.SUPABASE_INTERNAL_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://supabase-not-configured.invalid',

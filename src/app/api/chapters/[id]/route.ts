@@ -7,10 +7,8 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getLocalChapter } from '@/lib/chapters'
 
-export async function GET(
-  _request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const chapterId = Number(params.id)
 
   if (!/^\d+$/.test(params.id) || !Number.isInteger(chapterId) || chapterId < 1 || chapterId > 81) {
@@ -22,7 +20,7 @@ export async function GET(
 
   let chapter = getLocalChapter(chapterId)
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const { data } = await supabase
       .from('chapters')
       .select('id, original_text, vernacular_text')

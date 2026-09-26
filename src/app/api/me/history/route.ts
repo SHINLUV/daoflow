@@ -13,7 +13,7 @@ export async function GET() {
   }
 
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // 验证登录态；无会话是客户端状态，网络或 Auth 服务错误是依赖故障。
     const { data: { user }, error: authError } = await supabase.auth.getUser()

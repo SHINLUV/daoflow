@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 async function getAuthenticatedClient(requestId: string) {
   if (!isSupabaseConfigured) return errorResponse(503, 'SUPABASE_UNAVAILABLE', '收藏需要数据库配置；本地经典仍可阅读。', requestId)
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()
     if (error || !user) return errorResponse(401, 'AUTH_REQUIRED', '请先登录后管理收藏与批注。', requestId)
     return { supabase, user }

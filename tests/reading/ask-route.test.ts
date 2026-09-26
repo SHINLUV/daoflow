@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-const { enqueueMock, generateMock, configured, csrf } = vi.hoisted(() => ({ enqueueMock: vi.fn(), generateMock: vi.fn(), configured: { value: true }, csrf: { ok: true } }))
+const { enqueueMock, generateMock, configured, csrf, scheduleWorkerMock } = vi.hoisted(() => ({ enqueueMock: vi.fn(), generateMock: vi.fn(), configured: { value: true }, csrf: { ok: true }, scheduleWorkerMock: vi.fn() }))
 
 vi.mock('@/lib/journal/ask-requests', async () => import('../../src/lib/journal/ask-requests'))
 vi.mock('@/lib/auth/http', () => ({ verifyMutationRequest: () => csrf.ok ? { ok: true } : { ok: false, code: 'CSRF_REJECTED', message: 'csrf' } }))
 vi.mock('@/lib/ai/generateAnswerV2', () => ({ generateDaoAnswerV2: generateMock }))
 vi.mock('@/lib/ask-worker/runtime', () => ({ createConfiguredCorpusRepository: vi.fn(), hasAskWorkerRunnerConfiguration: () => true, releaseAnonymousAsk: vi.fn(), reserveAnonymousAsk: vi.fn() }))
+vi.mock('@/lib/ask-worker/vercel', () => ({ scheduleVercelAskWorker: scheduleWorkerMock }))
 vi.mock('@/lib/supabase/server', () => ({
   get isSupabaseConfigured() { return configured.value },
   createClient: () => ({
@@ -27,7 +28,7 @@ vi.mock('@/app/api/journal/ask-requests/server', () => ({
 import { POST } from '../../src/app/api/ask/route'
 
 describe('ask route queue boundary', () => {
-  beforeEach(() => { enqueueMock.mockReset(); generateMock.mockReset(); configured.value = true; csrf.ok = true })
+  beforeEach(() => { enqueueMock.mockReset(); generateMock.mockReset(); scheduleWorkerMock.mockReset(); configured.value = true; csrf.ok = true })
 
   it('assigns and echoes a server request id while only enqueuing an authenticated request', async () => {
     enqueueMock.mockImplementation(async (_userId: string, input: { requestId: string }) => ({ request_id: input.requestId, state: 'pending', lease_until: null }))
@@ -37,6 +38,7 @@ describe('ask route queue boundary', () => {
     expect(response.status).toBe(202)
     expect(body.requestId).toMatch(/^[0-9a-f-]{36}$/)
     expect(enqueueMock.mock.calls[0][1].requestId).toBe(body.requestId)
+    expect(scheduleWorkerMock).toHaveBeenCalledOnce()
     expect(generateMock).not.toHaveBeenCalled()
   })
 

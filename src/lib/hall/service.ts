@@ -33,7 +33,7 @@ export type PublicHallPage = { items: PublicHallDto[]; nextCursor: string | null
 export type HallPreview = { sessionId: string; sourceHash: string; question: string; answer: PublicHallDto['answer'] }
 
 export async function listPublicHall(query: HallListQuery): Promise<PublicHallPage> {
-  const data = await rpc(publicClient(), 'hall_list_publications', {
+  const data = await rpc(await publicClient(), 'hall_list_publications', {
     p_cursor: query.cursor,
     p_chapter: query.chapter,
     p_theme: query.theme,
@@ -46,7 +46,7 @@ export async function listPublicHall(query: HallListQuery): Promise<PublicHallPa
 }
 
 export async function getPublicHall(publicId: string): Promise<PublicHallDto> {
-  const data = await rpc(publicClient(), 'hall_get_publication', { p_public_id: publicId })
+  const data = await rpc(await publicClient(), 'hall_get_publication', { p_public_id: publicId })
   const publication = toPublicHallDto(data)
   if (!publication) throw new HallServiceError(404, 'NOT_FOUND', '该分享不存在或已撤回。')
   return publication
@@ -108,7 +108,7 @@ export async function reviewHallPublication(publicId: string, input: HallReviewI
 
 async function authenticatedUserClient(): Promise<{ client: AuthClient; user: HallUser }> {
   if (!isSupabaseConfigured) throw new HallServiceError(503, 'HALL_UNAVAILABLE', '同道大厅服务尚未配置。')
-  const client = createClient() as unknown as AuthClient
+  const client = await createClient() as unknown as AuthClient
   let auth
   try {
     auth = await client.auth.getUser()
@@ -130,9 +130,9 @@ async function verifiedUserClient(): Promise<{ client: AuthClient; user: HallUse
   return context
 }
 
-function publicClient(): RpcClient {
+async function publicClient(): Promise<RpcClient> {
   if (!isSupabaseConfigured) throw new HallServiceError(503, 'HALL_UNAVAILABLE', '同道大厅服务尚未配置。')
-  return createClient() as unknown as RpcClient
+  return await createClient() as unknown as RpcClient
 }
 
 async function rpc(client: RpcClient, name: string, args: Record<string, unknown>): Promise<unknown> {

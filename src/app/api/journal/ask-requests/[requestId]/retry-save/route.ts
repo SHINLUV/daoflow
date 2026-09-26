@@ -7,13 +7,14 @@ import { AskRequestRpcError, hasAskServiceConfiguration, retrySaveAskWorkerResul
 
 export const dynamic = 'force-dynamic'
 
-export async function POST(request: NextRequest, { params }: { params: { requestId: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ requestId: string }> }) {
+  const params = await props.params;
   const id = crypto.randomUUID()
   const security = verifyMutationRequest(request)
   if (!security.ok) return error(403, security.code, security.message, id)
   if (!isAskRequestId(params.requestId)) return error(400, 'INVALID_REQUEST_ID', 'requestId 必须是 UUID。', id)
   if (!isSupabaseConfigured || !hasAskServiceConfiguration()) return error(503, 'ASK_SAVE_UNAVAILABLE', '问道保存服务尚未配置。', id)
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) return error(401, 'AUTH_REQUIRED', '请先登录后重试保存。', id)
   try {

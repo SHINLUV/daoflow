@@ -31,7 +31,7 @@ function privateApiUnavailable(id: string) {
 
 async function currentUser(id: string) {
   if (!isSupabaseConfigured) return { response: privateApiUnavailable(id) }
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error || !user) return { response: errorResponse(401, 'AUTH_REQUIRED', '请先登录后再访问心笺。', id) }
   return { supabase, user }

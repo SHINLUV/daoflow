@@ -28,7 +28,7 @@ describe('owned ask history route', () => {
 
   it('reads one saved session with an explicit current-user predicate', async () => {
     maybeSingleMock.mockResolvedValue({ data: { id: SESSION_ID, question: '何以自处？', matched_chapter_id: 8, ai_response: '像水一样。', follow_up_question: '能否留白？', ai_provider: 'agnes', degraded: false, fallback_reason: null, source_entry_id: '69b4a169-8b2a-4744-8cec-c705d50f75dc', volume_id: null, created_at: '2026-09-10T00:00:00Z' }, error: null })
-    const response = await GET(new NextRequest(`http://localhost/api/ask/${SESSION_ID}`), { params: { sessionId: SESSION_ID } })
+    const response = await GET(new NextRequest(`http://localhost/api/ask/${SESSION_ID}`), { params: Promise.resolve({ sessionId: SESSION_ID }) })
     const body = await response.json()
     expect(response.status).toBe(200)
     expect(eqMock).toHaveBeenCalledWith('id', SESSION_ID)
@@ -38,7 +38,7 @@ describe('owned ask history route', () => {
 
   it('returns 404 for a missing or foreign session without exposing details', async () => {
     maybeSingleMock.mockResolvedValue({ data: null, error: null })
-    const response = await GET(new NextRequest(`http://localhost/api/ask/${SESSION_ID}`), { params: { sessionId: SESSION_ID } })
+    const response = await GET(new NextRequest(`http://localhost/api/ask/${SESSION_ID}`), { params: Promise.resolve({ sessionId: SESSION_ID }) })
     expect(response.status).toBe(404)
     expect((await response.json()).error.code).toBe('ASK_SESSION_NOT_FOUND')
   })

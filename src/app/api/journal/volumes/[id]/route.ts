@@ -8,7 +8,7 @@ const fail = (status: number, code: string, message: string, requestId: string, 
 
 async function auth(requestId: string) {
   if (!isSupabaseConfigured) return { response: fail(503, 'SUPABASE_UNAVAILABLE', '私人卷册服务尚未配置。', requestId) }
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
   return error || !user ? { response: fail(401, 'AUTH_REQUIRED', '请先登录后管理卷册。', requestId) } : { supabase, user }
 }
@@ -18,7 +18,8 @@ function valid(params: { id: string }, requestId: string) {
   catch (error) { return { response: fail(400, 'INVALID_INPUT', error instanceof Error ? error.message : 'id 无效。', requestId) } }
 }
 
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const requestId = crypto.randomUUID()
   const parsed = valid(params, requestId)
   if ('response' in parsed) return parsed.response
@@ -32,7 +33,8 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
   return NextResponse.json({ volume: toVolume(data, countResult.count ?? 0) })
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const requestId = crypto.randomUUID()
   const security = verifyMutationRequest(request)
   if (!security.ok) return fail(403, security.code, security.message, requestId)

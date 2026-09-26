@@ -7,7 +7,8 @@ import type { ApiError, Favorite } from '@/lib/journal/contracts'
 
 const FAVORITE_COLUMNS = 'id, chapter_id, excerpt, note, version, created_at, updated_at'
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const requestId = randomUUID()
   const security = verifyMutationRequest(request)
   if (!security.ok) return errorResponse(403, security.code, security.message, requestId)
@@ -31,7 +32,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   return NextResponse.json({ favorite: toFavorite(data) satisfies Favorite })
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const requestId = randomUUID()
   const security = verifyMutationRequest(request)
   if (!security.ok) return errorResponse(403, security.code, security.message, requestId)
@@ -52,7 +54,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
   return new NextResponse(null, { status: 204 })
 }
 
-async function getOwnedFavorite(supabase: ReturnType<typeof createClient>, userId: string, id: string) {
+async function getOwnedFavorite(supabase: Awaited<ReturnType<typeof createClient>>, userId: string, id: string) {
   return supabase
     .from('journal_favorites')
     .select(FAVORITE_COLUMNS)
@@ -64,7 +66,7 @@ async function getOwnedFavorite(supabase: ReturnType<typeof createClient>, userI
 async function getAuthenticatedClient(requestId: string) {
   if (!isSupabaseConfigured) return errorResponse(503, 'SUPABASE_UNAVAILABLE', '收藏需要数据库配置；本地经典仍可阅读。', requestId)
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()
     if (error || !user) return errorResponse(401, 'AUTH_REQUIRED', '请先登录后管理收藏与批注。', requestId)
     return { supabase, user }

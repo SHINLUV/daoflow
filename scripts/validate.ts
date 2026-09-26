@@ -91,7 +91,7 @@ async function validate() {
     console.error(`   ❌ 查询失败: ${kwError.message}`)
     errors++
   } else {
-    const count = (keywords as any[]).length
+    const count = keywords?.length ?? 0
     if (count < 30) {
       console.error(`   ❌ 关键词数量不足: ${count}（需要至少 30 组）`)
       errors++
@@ -110,7 +110,7 @@ async function validate() {
     console.error(`   ❌ 查询失败: ${tError.message}`)
     errors++
   } else {
-    const count = (themes as any[]).length
+    const count = themes?.length ?? 0
     if (count !== 6) {
       console.error(`   ❌ 主题数量: ${count}（需要 6 个）`)
       errors++

@@ -4,10 +4,10 @@ import { authCookieName } from '@/lib/auth/bff'
 import { isProduction, noStoreHeaders } from '@/lib/auth/http'
 
 /**
- * Supabase Auth 中间件
+ * Supabase Auth 代理
  * 刷新过期的 session cookie，保持登录态
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return privateNoStore(request, NextResponse.next({ request }))
   }

@@ -5,7 +5,8 @@ import { storedAnswerSnapshot, type AskAnswerResponse } from '@/lib/ask-worker/a
 
 export const dynamic = 'force-dynamic'
 
-export async function GET(_request: NextRequest, { params }: { params: { requestId: string } }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ requestId: string }> }) {
+  const params = await props.params;
   const id = crypto.randomUUID()
   if (!isAskRequestId(params.requestId)) return error(400, 'INVALID_REQUEST_ID', 'requestId 必须是 UUID。', id)
   const context = await currentUser(id)
@@ -35,7 +36,7 @@ export async function GET(_request: NextRequest, { params }: { params: { request
 
 async function currentUser(id: string) {
   if (!isSupabaseConfigured) return error(503, 'SUPABASE_UNAVAILABLE', '问道保存服务尚未配置。', id)
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   return authError || !user ? error(401, 'AUTH_REQUIRED', '请先登录后查看问道保存状态。', id) : { supabase, user }
 }

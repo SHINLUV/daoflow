@@ -4,12 +4,13 @@ import { getLocalChapter } from '@/lib/chapters'
 import { isAskRequestId } from '@/lib/journal/ask-requests'
 import { storedAnswerSnapshot } from '@/lib/ask-worker/answerResponse'
 
-export async function GET(_request: NextRequest, { params }: { params: { sessionId: string } }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ sessionId: string }> }) {
+  const params = await props.params;
   const requestId = crypto.randomUUID()
   if (!isAskRequestId(params.sessionId)) return failure(400, 'INVALID_SESSION_ID', 'sessionId 必须是 UUID。', requestId)
   if (!isSupabaseConfigured) return failure(503, 'SUPABASE_UNAVAILABLE', '私人问道历史服务尚未配置。', requestId)
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) return failure(401, 'AUTH_REQUIRED', '请先登录后查看问道历史。', requestId)
 
